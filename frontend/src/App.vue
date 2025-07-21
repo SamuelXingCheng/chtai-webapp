@@ -1,23 +1,13 @@
-<script setup lang="ts">
-import { RouterView } from 'vue-router'
-</script>
-
 <template>
-  <div id="app">
-    <!-- Tailwind 測試 -->
-    <h1 class="text-3xl font-bold underline text-blue-500 text-center my-4">
-      Tailwind 已套用成功！
-    </h1>
-
-    <!-- Router 畫面 -->
-    <RouterView />
+  <div class="min-h-screen bg-gray-100 flex items-center justify-center">
+    <div class="bg-yellow-200 p-6 rounded shadow text-red-500 text-3xl font-bold">
+      Tailwind 測試成功 🎉
+    </div>
   </div>
 </template>
 
+<script setup lang="ts">
+</script>
+
 <style scoped>
-#app {
-  min-height: 100vh;
-  display: flex;
-  flex-direction: column;
-}
 </style>
