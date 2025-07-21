@@ -4,9 +4,13 @@ import { RouterView } from 'vue-router'
 
 <template>
   <div id="app">
-    <!-- 可放 Navbar、Header 等固定項目 -->
+    <!-- Tailwind 測試 -->
+    <h1 class="text-3xl font-bold underline text-blue-500 text-center my-4">
+      Tailwind 已套用成功！
+    </h1>
+
+    <!-- Router 畫面 -->
     <RouterView />
-    <!-- 可放 Footer -->
   </div>
 </template>
 
