@@ -1,5 +1,5 @@
 <template>
-  <section class="bg-beige py-16">
+  <section class="bg-beige pt-3 pb-3">
     <div class="max-w-7xl mx-auto px-4">
       <!-- 包一層白底卡片 -->
       <div class="bg-white rounded-2xl shadow-md p-8">

@@ -1,5 +1,5 @@
 <template>
-  <section class="bg-beige py-16">
+  <section class="bg-beige pt-24 pb-3">
     <div class="max-w-7xl mx-auto px-4">
         <div class="bg-white rounded-xl shadow p-8 flex flex-col-reverse lg:flex-row items-center gap-12">
             <!-- Text Block -->
@@ -14,9 +14,8 @@
                 </button>
             </div>
 
-            <!-- Image Block -->
-            <div class="flex-1">
-                <img src="/banner-book.png" alt="Hero" class="w-full rounded shadow" />
+            <div class="flex justify-center items-center flex-1">
+                <img src="/banner-book.png" alt="Hero" class="max-w-[360px] w-full rounded shadow" />
             </div>
         </div>
     </div>
