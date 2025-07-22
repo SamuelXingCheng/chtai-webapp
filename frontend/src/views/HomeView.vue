@@ -2,8 +2,9 @@
   <div>
     <NavBar />
     <HeroSection />
-    <LatestVideos />
     <FeatureSection />
+    <LatestVideos />
+    
   </div>
 </template>
 
