@@ -15,3 +15,5 @@ dist/
 
 # Firebase credentials
 serviceAccountKey.json
+
+*.png
