@@ -10,9 +10,9 @@
       <!-- 導覽選單（桌面版） -->
       <nav class="hidden md:flex gap-6 text-gray-700 font-medium">
         <a href="#" class="hover:text-blue-600 transition duration-200">首頁</a>
-        <a href="#" class="hover:text-blue-600 transition duration-200">系統見證</a>
-        <a href="#" class="hover:text-blue-600 transition duration-200">各聚會區</a>
-        <a href="#" class="hover:text-blue-600 transition duration-200">生命期刊</a>
+        <a href="#" class="hover:text-blue-600 transition duration-200">認識我們</a>
+        <a href="#" class="hover:text-blue-600 transition duration-200">聚會資訊</a>
+        <a href="#" class="hover:text-blue-600 transition duration-200">召會週訊</a>
       </nav>
 
       <!-- 語言切換（桌面版） -->
