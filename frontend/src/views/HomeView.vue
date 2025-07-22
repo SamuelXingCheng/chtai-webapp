@@ -3,6 +3,7 @@
     <NavBar />
     <HeroSection />
     <LatestVideos />
+    <FeatureSection />
   </div>
 </template>
 
@@ -10,6 +11,7 @@
 import NavBar from '../components/NavBar.vue'
 import HeroSection from '../components/HeroSection.vue'
 import LatestVideos from '../components/LatestVideos.vue'
+import FeatureSection from '../components/FeatureSection.vue'
 </script>
 
 <style scoped>
