@@ -8,7 +8,7 @@
       </div>
 
       <!-- 導覽選單（桌面版） -->
-      <nav class="hidden md:flex gap-6 text-gray-700 font-medium">
+      <nav class="hidden md:flex gap-6 text-gray-700 font-medium ml-auto mr-8">
         <a href="#" class="hover:text-blue-600 transition duration-200">首頁</a>
         <a href="#" class="hover:text-blue-600 transition duration-200">認識我們</a>
         <a href="#" class="hover:text-blue-600 transition duration-200">聚會資訊</a>

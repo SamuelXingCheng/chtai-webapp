@@ -13,7 +13,7 @@
         <swiper-slide v-for="(slide, index) in slides" :key="index">
           <div class="bg-white p-6 md:p-10 flex flex-col-reverse lg:flex-row items-center gap-10 rounded-xl">
             <!-- 左側文字 -->
-            <div class="flex-1">
+            <div class="flex-0.3">
               <p class="text-sm text-gray-500 mb-2">{{ slide.date }}</p>
               <h2 class="text-3xl md:text-4xl font-bold text-gray-800 leading-snug" v-html="slide.title"></h2>
               <p class="mt-4 text-gray-600">{{ slide.description }}</p>
