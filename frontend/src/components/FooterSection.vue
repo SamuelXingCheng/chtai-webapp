@@ -20,7 +20,7 @@
 
       <!-- 右側連結 -->
       <div class="flex items-center gap-1 hover:underline text-blue-700 cursor-pointer">
-        <RouterLink to="/about">關於我們 &gt;</RouterLink>
+        <RouterLink to="/contact">聯絡我們 &gt;</RouterLink>
       </div>
     </div>
   </footer>

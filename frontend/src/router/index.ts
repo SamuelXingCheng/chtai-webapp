@@ -3,6 +3,8 @@ import HomeView from '../views/HomeView.vue'
 
 import WeeklyNews from '../views/downloads/WeeklyNews.vue'
 import ApplicationForms from '../views/downloads/ApplicationForms.vue'
+import ContactView from '../views/ContactView.vue'
+import BeliefsView from '../views/BeliefsView.vue'
 
 const routes = [
   {
@@ -20,6 +22,16 @@ const routes = [
     name: 'application-forms',
     component: ApplicationForms,
   },
+  {
+    path: '/beliefs',
+    name: 'beliefs',
+    component: BeliefsView, // 我們的信仰
+  },
+  {
+    path: '/contact',
+    name: 'contact',
+    component: ContactView, // 聯絡我們
+  }
 ]
 
 const router = createRouter({
