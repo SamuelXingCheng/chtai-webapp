@@ -17,7 +17,7 @@
               <p class="text-sm text-gray-500 mb-2">{{ slide.date }}</p>
               <h2 class="text-3xl md:text-4xl font-bold text-gray-800 leading-snug" v-html="slide.title"></h2>
               <p class="mt-4 text-gray-600">{{ slide.description }}</p>
-              <button class="mt-6 bg-blue-600 text-white px-6 py-2 rounded hover:shadow-md transition">
+              <button class="mt-6 text-white px-6 py-2 rounded bg-teal-500 hover:bg-teal-600 transition">
                 了解更多
               </button>
             </div>
