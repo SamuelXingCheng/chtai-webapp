@@ -6,6 +6,7 @@
     <FeatureSection />
     <LatestVideos />
     <DownloadSection />
+    <FooterSection />
     
   </div>
 </template>
@@ -17,6 +18,7 @@ import Carousel from '../components/Carousel.vue'
 import LatestVideos from '../components/LatestVideos.vue'
 import FeatureSection from '../components/FeatureSection.vue'
 import DownloadSection from '../components/DownloadSection.vue'
+import FooterSection from '../components/FooterSection.vue'
 </script>
 
 <style scoped>
