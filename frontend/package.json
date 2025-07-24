@@ -17,6 +17,7 @@
   },
   "dependencies": {
     "@splidejs/vue-splide": "^0.6.12",
+    "firebase": "^12.0.0",
     "swiper": "^11.2.10",
     "vue-router": "^4.5.1"
   }

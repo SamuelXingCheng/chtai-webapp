@@ -16,18 +16,22 @@
         </nav>
 
       <!-- 語言切換（桌面版） -->
-      <div class="hidden md:flex items-center gap-3">
-        <button class="text-sm text-gray-600 hover:text-blue-600">中文</button>
-        <span class="text-gray-400">|</span>
-        <button class="text-sm text-gray-600 hover:text-blue-600">EN</button>
-      </div>
+        <div class="hidden md:flex items-center gap-3">
+            <LoginButton /> 
+            <button class="text-sm text-gray-600 hover:text-blue-600">中文</button>
+            <span class="text-gray-400">|</span>
+            <button class="text-sm text-gray-600 hover:text-blue-600">EN</button>
+        </div>
 
       <!-- 漢堡選單按鈕（手機版） -->
-      <button @click="isOpen = true" class="md:hidden text-gray-700 focus:outline-none">
-        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-        </svg>
-      </button>
+        <div class="flex items-center gap-3 md:hidden">
+            <LoginButton /> <!-- 👈 手機版登入按鈕放左邊 -->
+            <button @click="isOpen = true" class="text-gray-700 focus:outline-none">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+        </div>
     </div>
 
     <!-- 手機選單遮罩 -->
@@ -63,6 +67,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { RouterLink } from 'vue-router'
+import LoginButton from '../components/LoginButton.vue'
 
 const isOpen = ref(false)
 </script>
