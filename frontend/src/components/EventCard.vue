@@ -24,7 +24,7 @@ const emit = defineEmits(['share'])
       <p>{{ event.date }}</p>
       <a
         :href="event.link"
-        class="inline-flex items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs md:text-sm shadow transition"
+        class="inline-flex w-[100px] items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs md:text-sm shadow transition"
       >
         前往報名 →
       </a>
@@ -38,12 +38,11 @@ const emit = defineEmits(['share'])
       </p>
       <button
         @click="emit('share', event)"
-        class="inline-flex items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-md text-xs md:text-sm shadow-sm transition"
+        class="inline-flex w-[100px] items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-md text-xs md:text-sm shadow-sm transition"
       >
-        邀請報名
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="currentColor" viewBox="0 0 20 20">
-          <path d="M12.293 2.293a1 1 0 011.414 0l4 4a1 1 0 010 1.414L13.707 12H11v-2.707l5.293-5.293-4-4z" />
-          <path d="M3 5a2 2 0 012-2h5a1 1 0 110 2H5v10h10v-5a1 1 0 112 0v5a2 2 0 01-2 2H5a2 2 0 01-2-2V5z" />
+        誰有報名
+        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+            <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0zM3 14a4 4 0 018 0H3zM16 14a4 4 0 00-3-3.87 5.97 5.97 0 00-.47-.13 6.03 6.03 0 00-.45-.1A4.01 4.01 0 0116 14z" />
         </svg>
       </button>
     </div>
