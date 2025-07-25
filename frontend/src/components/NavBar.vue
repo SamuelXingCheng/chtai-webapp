@@ -13,8 +13,15 @@
             <RouterLink to="/beliefs" class="hover:text-blue-600 transition duration-200">認識我們</RouterLink>
             <RouterLink to="/gatherings" class="hover:text-blue-600 transition duration-200">聚會資訊</RouterLink>
             <RouterLink to="/weekly-news" class="hover:text-blue-600 transition duration-200">召會週訊</RouterLink>
+        
+            <RouterLink
+                v-if="isLoggedIn"
+                to="/profile"
+                class="hover:text-blue-600 transition duration-200"
+                >
+                個人資料
+            </RouterLink>
         </nav>
-
       <!-- 語言切換（桌面版） -->
         <div class="hidden md:flex items-center gap-3">
             <LoginButton /> 
@@ -52,7 +59,13 @@
         <RouterLink to="/beliefs" class="text-gray-800 font-medium hover:text-blue-600">認識我們</RouterLink>
         <RouterLink to="/gatherings" class="text-gray-800 font-medium hover:text-blue-600">聚會資訊</RouterLink>
         <RouterLink to="/weekly-news" class="text-gray-800 font-medium hover:text-blue-600">召會週訊</RouterLink>
-
+        <RouterLink
+            v-if="isLoggedIn"
+            to="/profile"
+            class="text-gray-800 font-medium hover:text-blue-600"
+            >
+            個人資料
+        </RouterLink>
         <hr />
 
         <div class="flex gap-2 pt-2">
@@ -65,9 +78,19 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { RouterLink } from 'vue-router'
-import LoginButton from '../components/LoginButton.vue'
+    import { ref, onMounted } from 'vue'
+    import { getAuth, onAuthStateChanged } from 'firebase/auth'
+    import { RouterLink } from 'vue-router'
+    import LoginButton from '../components/LoginButton.vue'
 
-const isOpen = ref(false)
+    const isOpen = ref(false)
+    const isLoggedIn = ref(false)
+
+    onMounted(() => {
+        const auth = getAuth()
+        onAuthStateChanged(auth, (user) => {
+            isLoggedIn.value = !!user
+        })
+    })
+
 </script>

@@ -5,12 +5,18 @@ import WeeklyNews from '../views/downloads/WeeklyNews.vue'
 import ApplicationForms from '../views/downloads/ApplicationForms.vue'
 import ContactView from '../views/ContactView.vue'
 import BeliefsView from '../views/BeliefsView.vue'
+import Profile from '../views/Profile.vue'
 
 const routes = [
   {
     path: '/',
     name: 'home',
     component: HomeView,
+  },
+  {
+    path: '/profile',
+    name: 'Profile',
+    component: Profile,
   },
   {
     path: '/weekly-news',

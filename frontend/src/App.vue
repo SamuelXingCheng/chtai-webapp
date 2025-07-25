@@ -1,11 +1,14 @@
 <template>
-  <div class="bg-gray-50 min-h-screen text-gray-800">
+  <!-- 根據提醒條顯示與否調整 padding-top -->
+  <div :class="[shouldShowReminder ? 'pt-[96px]' : 'pt-[48px]', 'bg-beige min-h-screen text-gray-800']">
+    <TopBar v-model="shouldShowReminder" />
     <router-view />
   </div>
 </template>
 
 <script setup lang="ts">
-</script>
+import { ref } from 'vue'
+import TopBar from './components/TopBar.vue'
 
-<style scoped>
-</style>
+const shouldShowReminder = ref(true)
+</script>
