@@ -41,6 +41,8 @@ import 'swiper/css'
 import 'swiper/css/pagination'
 import 'swiper/css/navigation'
 
+const base = import.meta.env.BASE_URL
+
 const modules = [Autoplay, Pagination, Navigation]
 
 const slides = [
@@ -48,13 +50,13 @@ const slides = [
     date: '7/21 即將進入',
     title: '以弗所書<br/>生命讀經',
     description: '盼望你我都準備好，不要錯過相約一同天天共同追求！',
-    image: '/banner-book.png',
+    image: `${base}banner-book.png`,
   },
   {
     date: '8/15 將舉行',
     title: '兒童服事訓練',
     description: '歡迎所有負責的弟兄姊妹參加，恢復主託付的照顧與教導',
-    image: '/children-image.png',
+    image: `${base}children-image.png`,
   },
 ]
 </script>
