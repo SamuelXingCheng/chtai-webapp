@@ -78,13 +78,21 @@
 </template>
 
 <script setup lang="ts">
-    import { ref, onMounted } from 'vue'
+    import { ref, onMounted, watch } from 'vue'
     import { getAuth, onAuthStateChanged } from 'firebase/auth'
     import { RouterLink } from 'vue-router'
     import LoginButton from '../components/LoginButton.vue'
 
+    const emit = defineEmits<{
+      (e: 'menu-open', value: boolean): void
+    }>()
+
     const isOpen = ref(false)
     const isLoggedIn = ref(false)
+
+    watch(isOpen, (val) => {
+      emit('menu-open', val)
+    })
 
     onMounted(() => {
         const auth = getAuth()

@@ -18,24 +18,40 @@
     </Transition>
 
     <!-- 導覽列放在提醒條下方，offset 為提醒條高度 -->
+    <!-- TopBar.vue -->
     <Navbar
       :class="[
         'fixed w-full z-50 bg-white/95 backdrop-blur shadow-sm border-b transition-all duration-300',
         shouldShowReminder ? 'top-[48px]' : 'top-0'
       ]"
+      @menu-open="(val) => emit('menu-open', val)"
     />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
+import { ref, onMounted, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
 import { auth, db } from '../firebase'
 import Navbar from './NavBar.vue'
 
-const shouldShowReminder = ref(false)
+// 🧠 接收 v-model 的值與事件
+const props = defineProps<{
+  modelValue: boolean
+}>()
+
+const emit = defineEmits<{
+  (e: 'update:modelValue', value: boolean): void
+  (e: 'menu-open', value: boolean): void
+}>()
+
+// ✅ 計算實際應顯示狀態（來自 v-model）
+const shouldShowReminder = computed(() => props.modelValue)
+
+// 🔒 控制「原始是否該提醒」，供 TopBar 內部判斷
+const shouldShowReminderRaw = ref(false)
 
 onMounted(() => {
   onAuthStateChanged(auth, async (user) => {
@@ -46,27 +62,31 @@ onMounted(() => {
 
     if (!snap.exists()) {
       console.log('使用者文件不存在，顯示提醒')
-      shouldShowReminder.value = true
+      shouldShowReminderRaw.value = true
+      emit('update:modelValue', true)
       return
     }
 
     const data = snap.data()
     if (localStorage.getItem('profileJustSaved')) {
       console.log('localStorage 檢測到 profileJustSaved，略過提醒')
-      shouldShowReminder.value = false
+      shouldShowReminderRaw.value = false
+      emit('update:modelValue', false)
       localStorage.removeItem('profileJustSaved')
     } else if (!data.name || !data.area || !data.sub_area) {
       console.log('使用者資料不完整，顯示提醒')
-      shouldShowReminder.value = true
+      shouldShowReminderRaw.value = true
+      emit('update:modelValue', true)
 
-      // ✅ 延長可見時間為 5 秒
       setTimeout(() => {
-        shouldShowReminder.value = false
+        shouldShowReminderRaw.value = false
+        emit('update:modelValue', false)
       }, 5000)
     }
   })
 })
 </script>
+
 
 <style scoped>
 .slide-fade-enter-active {
