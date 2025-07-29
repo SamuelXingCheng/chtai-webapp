@@ -9,7 +9,7 @@
 
     <!-- 影片卡片列表 -->
     <!-- 影片卡片容器改為 grid 2欄 -->
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid grid-cols-2 sm:grid-cols-3 gap-4">
         <div
             v-for="video in previewVideos"
             :key="video.id"
