@@ -95,21 +95,37 @@ const close = () => {
 }
 
 const toggleSize = () => {
-  if (isLarge.value) {
-    // 從放大 → 回到預設大小並吸附角落
-    isLarge.value = false
-    playerSize.value = defaultSize
+  isLarge.value = !isLarge.value
+  playerSize.value = isLarge.value ? getResponsiveSize() : defaultSize
+
+  if (!isLarge.value && minimized.value) {
     requestAnimationFrame(() => {
       moveToNearestCorner()
     })
-  } else {
-    // 從預設大小 → 放大
-    isLarge.value = true
-    playerSize.value = largeSize
-    adjustWithinWindow()
   }
+
+  requestAnimationFrame(() => {
+    adjustWithinWindow()
+  })
 }
 
+
+const getResponsiveSize = () => {
+  const padding = 40
+  const maxWidth = window.innerWidth - padding
+  const maxHeight = window.innerHeight - padding
+  const ratio = 16 / 9
+
+  let width = Math.min(640, maxWidth)
+  let height = width / ratio
+
+  if (height > maxHeight) {
+    height = maxHeight
+    width = height * ratio
+  }
+
+  return { width, height }
+}
 
 // 擷取 YouTube ID
 function getYoutubeId(url) {
@@ -212,7 +228,11 @@ const minimize = () => {
 const restorePlayer = () => {
   minimized.value = false
   playerSize.value = isLarge.value ? largeSize : defaultSize
-  adjustWithinWindow()
+
+  // 縮放後自動回到角落
+  requestAnimationFrame(() => {
+    moveToNearestCorner()
+  })
 }
 
 const handleTransitionEnd = () => {
@@ -225,6 +245,47 @@ const handleTransitionEnd = () => {
   position.value.x = Math.min(position.value.x, maxX)
   position.value.y = Math.min(position.value.y, maxY)
 }
+
+onMounted(() => {
+  window.addEventListener('resize', handleResize)
+})
+
+onBeforeUnmount(() => {
+  stopDrag()
+  window.removeEventListener('resize', handleResize)
+})
+
+const handleResize = () => {
+  // 如果最小化，就移動到最近角落即可
+  if (minimized.value) {
+    requestAnimationFrame(() => moveToNearestCorner())
+    return
+  }
+
+  // 如果目前是放大狀態，但螢幕不夠寬，則縮小
+  const padding = 40
+  const screenWidth = window.innerWidth
+  const screenHeight = window.innerHeight
+
+  const newLargeSize = getResponsiveSize()
+  const canStayLarge = screenWidth >= newLargeSize.width + padding &&
+                       screenHeight >= newLargeSize.height + padding
+
+  if (!canStayLarge && isLarge.value) {
+    isLarge.value = false
+    playerSize.value = defaultSize
+  }
+
+  // 重新調整播放器大小與位置
+  if (isLarge.value) {
+    playerSize.value = newLargeSize
+  }
+
+  requestAnimationFrame(() => {
+    adjustWithinWindow()
+  })
+}
+
 
 onBeforeUnmount(() => stopDrag())
 defineExpose({ open })
