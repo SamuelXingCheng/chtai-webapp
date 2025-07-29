@@ -5,7 +5,7 @@
     <div class="bg-beige w-full">
       <div class="max-w-7xl mx-auto px-4 py-10 grid md:grid-cols-2 gap-3 pt-3 pb-3">
         <EventStatsCarousel />
-        <SpiritualWall />
+        <HomeVideoPreview />
       </div>
     </div>
     <!-- <HeroSection /> -->
@@ -28,6 +28,7 @@ import FooterSection from '../components/FooterSection.vue'
 
 import SpiritualWall from '../components/SpiritualWall.vue'
 import EventStatsCarousel from '../components/EventStatsCarousel.vue'
+import HomeVideoPreview from '../components/HomeVideoPreview.vue'
 
 </script>
 
