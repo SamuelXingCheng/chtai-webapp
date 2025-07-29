@@ -10,7 +10,7 @@
     </div>
     <!-- <HeroSection /> -->
     <FeatureSection />
-    <LatestVideos />
+    <!-- <LatestVideos /> -->
     <DownloadSection />
     <FooterSection />
     
