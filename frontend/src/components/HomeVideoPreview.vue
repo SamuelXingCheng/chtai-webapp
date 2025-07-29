@@ -69,7 +69,13 @@ const previewVideos = ref([
 ])
 
 const infoVideos = ref([
-  { id: 'v1', title: '台中信息1', source: '台中市召會', videoUrl: '...', coverImage: '...' },
+  { id: 'v1', title: '台中清晨禱研背講', source: '台中市召會', 
+  videoUrl: 'https://www.youtube.com/watch?v=9HuKURB5fSo', 
+  coverImage: 'https://img.youtube.com/vi/9HuKURB5fSo/0.jpg' },
+
+  { id: 'v2', title: '李俊輝弟兄 要點交通', source: '台中市召會', 
+  videoUrl: 'https://youtu.be/FvdjKZfe8gw/watch?v=FvdjKZfe8gw', 
+  coverImage: 'https://img.youtube.com/vi/FvdjKZfe8gw/0.jpg' }
   // 更多本週信息影音
 ])
 

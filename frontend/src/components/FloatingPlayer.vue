@@ -72,6 +72,9 @@ const playerSize = ref({ width: 320, height: 180 })
 const defaultSize = { width: 320, height: 180 }
 const largeSize = { width: 640, height: 360 }
 
+const paddingRight = 10
+const paddingBottom = 40
+
 // 初始位置在右下角
 const position = ref({ x: window.innerWidth - 340, y: window.innerHeight - 220 })
 
@@ -84,9 +87,10 @@ const open = (videoUrl) => {
   playerSize.value = defaultSize
   // 初始化位置
   position.value = {
-    x: window.innerWidth - defaultSize.width - 20,
-    y: window.innerHeight - defaultSize.height - 20,
+    x: window.innerWidth - defaultSize.width - paddingRight,
+    y: window.innerHeight - defaultSize.height - paddingBottom,
   }
+  requestAnimationFrame(() => adjustWithinWindow())
 }
 
 const close = () => {
@@ -98,7 +102,8 @@ const toggleSize = () => {
   isLarge.value = !isLarge.value
   playerSize.value = isLarge.value ? getResponsiveSize() : defaultSize
 
-  if (!isLarge.value && minimized.value) {
+  // ✨ 新增這段：當變為非放大狀態（縮小）後，自動貼角落
+  if (!isLarge.value) {
     requestAnimationFrame(() => {
       moveToNearestCorner()
     })
@@ -165,17 +170,17 @@ const stopDrag = () => {
 
 const snapToEdges = () => {
   const threshold = 20
-  const maxX = window.innerWidth - playerSize.value.width
-  const maxY = window.innerHeight - playerSize.value.height
+  const maxX = window.innerWidth - playerSize.value.width - paddingRight
+  const maxY = window.innerHeight - playerSize.value.height - paddingBottom
 
   if (position.value.x < threshold) {
-    position.value.x = 0
+    position.value.x = paddingRight
   } else if (position.value.x > maxX - threshold) {
     position.value.x = maxX
   }
 
   if (position.value.y < threshold) {
-    position.value.y = 0
+    position.value.y = paddingBottom
   } else if (position.value.y > maxY - threshold) {
     position.value.y = maxY
   }
@@ -184,10 +189,11 @@ const snapToEdges = () => {
 
 const adjustWithinWindow = () => {
   // 如果放大後超出視窗，拉回來
-  const maxX = window.innerWidth - playerSize.value.width
-  const maxY = window.innerHeight - playerSize.value.height
-  position.value.x = Math.min(position.value.x, maxX)
-  position.value.y = Math.min(position.value.y, maxY)
+    const maxX = window.innerWidth - playerSize.value.width - paddingRight
+    const maxY = window.innerHeight - playerSize.value.height - paddingBottom
+
+    position.value.x = Math.min(Math.max(paddingRight, position.value.x), maxX)
+    position.value.y = Math.min(Math.max(paddingBottom, position.value.y), maxY)
 }
 
 const moveToNearestCorner = () => {
@@ -196,10 +202,10 @@ const moveToNearestCorner = () => {
   const height = playerSize.value.height
 
   const corners = [
-    { x: padding, y: padding }, // 左上
-    { x: window.innerWidth - width - padding, y: padding }, // 右上
-    { x: padding, y: window.innerHeight - height - padding }, // 左下
-    { x: window.innerWidth - width - padding, y: window.innerHeight - height - padding }, // 右下
+    { x: paddingRight, y: paddingBottom }, // 左上
+    { x: window.innerWidth - width - paddingRight, y: paddingBottom }, // 右上
+    { x: paddingRight, y: window.innerHeight - height - paddingBottom }, // 左下
+    { x: window.innerWidth - width - paddingRight, y: window.innerHeight - height - paddingBottom }, // 右下
   ]
 
   let closest = corners[0]
@@ -227,23 +233,28 @@ const minimize = () => {
 
 const restorePlayer = () => {
   minimized.value = false
-  playerSize.value = isLarge.value ? largeSize : defaultSize
+  playerSize.value = isLarge.value ? getResponsiveSize() : defaultSize
 
-  // 縮放後自動回到角落
   requestAnimationFrame(() => {
-    moveToNearestCorner()
+    if (isLarge.value) {
+      position.value = {
+        x: window.innerWidth - playerSize.value.width - paddingRight,
+        y: window.innerHeight - playerSize.value.height - paddingBottom,
+      }
+    } else {
+      moveToNearestCorner()
+    }
   })
 }
 
 const handleTransitionEnd = () => {
   if (!visible.value || minimized.value) return
 
-  const padding = 20
-  const maxX = window.innerWidth - playerSize.value.width - padding
-  const maxY = window.innerHeight - playerSize.value.height - padding
+  const maxX = window.innerWidth - playerSize.value.width - paddingRight
+  const maxY = window.innerHeight - playerSize.value.height - paddingBottom
 
-  position.value.x = Math.min(position.value.x, maxX)
-  position.value.y = Math.min(position.value.y, maxY)
+  position.value.x = Math.min(Math.max(paddingRight, position.value.x), maxX)
+  position.value.y = Math.min(Math.max(paddingBottom, position.value.y), maxY)
 }
 
 onMounted(() => {
@@ -268,8 +279,8 @@ const handleResize = () => {
   const screenHeight = window.innerHeight
 
   const newLargeSize = getResponsiveSize()
-  const canStayLarge = screenWidth >= newLargeSize.width + padding &&
-                       screenHeight >= newLargeSize.height + padding
+  const canStayLarge = screenWidth >= newLargeSize.width + paddingRight &&
+                       screenHeight >= newLargeSize.height + paddingBottom
 
   if (!canStayLarge && isLarge.value) {
     isLarge.value = false
