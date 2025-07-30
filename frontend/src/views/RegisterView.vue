@@ -1,23 +1,19 @@
 <!-- src/views/RegisterView.vue -->
 <script setup lang="ts">
 import { useRoute } from 'vue-router'
-import { computed, ref } from 'vue'
-
-// ✅ 對應每個活動的 ID 與其網址
-const iframeMap = {
-  '1': 'https://docs.google.com/spreadsheets/d/e/xxxxx1/pubhtml',
-  '2': 'https://docs.google.com/spreadsheets/d/e/xxxxx2/pubhtml',
-  '3': 'https://docs.google.com/spreadsheets/d/1iZnx7j1p2oxEIfpgcCsR2GPfzCTNfqILMEj_2KwltwU/edit?resourcekey=&gid=215240708#gid=215240708'
-}
+import { computed, ref, onMounted } from 'vue'
+import { db } from '../firebase'
+import { doc, getDoc } from 'firebase/firestore'
 
 const route = useRoute()
 const id = computed(() => route.query.id as string)
-const rawUrl = computed(() => iframeMap[id.value] ?? '')
 
-// ✅ 判斷是否為可嵌入的 pubhtml 格式
+const rawUrl = ref('')
+const iframeLoaded = ref(false)
+const iframeError = ref(false)
+
 const isEmbedUrl = computed(() => rawUrl.value.includes('/pubhtml'))
 
-// ✅ 若為 embed 格式，才組出 iframe URL
 const iframeUrl = computed(() => {
   if (!isEmbedUrl.value) return ''
   return rawUrl.value.includes('?')
@@ -25,10 +21,18 @@ const iframeUrl = computed(() => {
     : `${rawUrl.value}?widget=true&headers=false`
 })
 
-const iframeLoaded = ref(false)
-const iframeError = ref(false)
-</script>
+onMounted(async () => {
+  if (!id.value) return
 
+  const docRef = doc(db, 'events', id.value)
+  const snapshot = await getDoc(docRef)
+
+  if (snapshot.exists()) {
+    const data = snapshot.data()
+    rawUrl.value = data.responseUrl || ''
+  }
+})
+</script>
 
 <template>
   <div class="max-w-5xl mx-auto p-4 pt-[96px] space-y-6">
@@ -68,7 +72,7 @@ const iframeError = ref(false)
       </a>
     </div>
 
-    <!-- ❌ 無效 ID -->
+    <!-- ❌ 無效 ID 或找不到 responseUrl -->
     <div v-if="!rawUrl" class="text-red-600">
       無效的報名連結，請確認活動 ID 是否正確。
     </div>

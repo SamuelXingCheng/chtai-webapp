@@ -1,12 +1,15 @@
+<!-- components/EventStatsCarousel.vue -->
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted, computed } from 'vue'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from '../firebase' // 請依你實際 firebase 初始化路徑修改
 import EventCard from '../components/EventCard.vue'
 
 const showDialog = ref(false)
 
 function handleViewEvent(event: any) {
   if (event.canView) {
-    const base = import.meta.env.BASE_URL // 通常是 '/newsite/' 或 '/'
+    const base = import.meta.env.BASE_URL
     const id = event.id
     window.location.href = `${base}register-view?id=${id}`
   } else {
@@ -14,45 +17,34 @@ function handleViewEvent(event: any) {
   }
 }
 
-// ✅ 分類好的資料
-const globalEvents = ref([
-  {
-    id: '3',
-    title: '全召會事奉特會',
-    date: '9/13（主日）',
-    count: 78,
-    link: '/register?id=3',
-    canView: true
-  }
-])
+const allEvents = ref([])
 
-const localEvents = ref([
-  {
-    id: '1',
-    title: '兒童家長交通',
-    date: '8/3（六）上午 9:00',
-    count: 41,
-    link: '/register?id=2',
-    canView: true
-  },
-  {
-    id: '2',
-    title: '大專五環交通',
-    date: '8/23（六）上午 9:00',
-    count: 100,
-    link: '/register?id=3',
-    canView: false // ❌ 模擬未開放查看
-  },
-  {
-    id: '4',
-    title: '青職福音行動',
-    date: '7/28（日）下午 3:00',
-    count: 23,
-    link: '/register?id=1',
-    canView: true
-  }
-])
+onMounted(async () => {
+  const snapshot = await getDocs(collection(db, 'events'))
+  allEvents.value = snapshot.docs.map(doc => {
+    const data = doc.data()
+    return {
+      id: doc.id,
+      title: data.title,
+      date: data.date,
+      count: data.count ?? 0,
+      registerUrl: data.registerUrl,
+      responseUrl: data.responseUrl,
+      canView: typeof data.responseUrl === 'string' && data.responseUrl.length > 0,
+      groupName: doc.id, 
+      link: `/register?id=${doc.id}`
+    }
+  })
+  // console.log('🔥 allEvents:', allEvents.value)
+})
 
+const globalEvents = computed(() =>
+  allEvents.value.filter(e => e.groupName.includes('全召會'))
+)
+
+const localEvents = computed(() =>
+  allEvents.value.filter(e => !e.groupName.includes('全召會'))
+)
 
 function shareEvent(event: { title: string; date: string; link: string }) {
   const shareText = `邀請你參加「${event.title}」\n時間：${event.date}\n報名連結：https://yourdomain.com${event.link}`

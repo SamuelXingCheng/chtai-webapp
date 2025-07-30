@@ -41,14 +41,14 @@ const routes = [
     component: ContactView, // 聯絡我們
   },
   {
-    path: '/register-view',
-    name: 'RegisterView',
-    component: RegisterView
-  },
-  {
     path: '/register-form',
     name: 'RegisterForm',
     component: RegisterFormView
+  },
+  {
+    path: '/register-view',
+    name: 'RegisterView',
+    component: RegisterView
   }
 ]
 

@@ -8,6 +8,9 @@ const props = defineProps<{
     title: string
     date: string
     count: number
+    registerUrl: string
+    responseUrl: string
+    canView: boolean
     link: string
   }
 }>()
