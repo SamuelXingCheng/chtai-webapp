@@ -7,13 +7,15 @@ import { computed } from 'vue'
 const iframeMap = {
   '1': 'https://docs.google.com/spreadsheets/d/e/xxxxx1/pubhtml?widget=true&headers=false',
   '2': 'https://docs.google.com/spreadsheets/d/e/xxxxx2/pubhtml?widget=true&headers=false',
-  '3': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFO_Lakd-2u1siVo830N7JAXDki8kDtKfohqMVI6MsiQlkDhlvlW7zjNcktVkc_SW5gBNSE5dlybv_/pubhtml?widget=true&headers=false'
+  '3': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQFO_Lakd-2u1siVo830N7JAXDki8kDtKfohqMVI6MsiQlkDhlvlW7zjNcktVkc_SW5gBNSE5dlybv_/pubhtml'
 }
 
 const route = useRoute()
 const id = computed(() => route.query.id as string)
-const iframeUrl = computed(() => iframeMap[id.value])
-
+const iframeUrl = computed(() => {
+  const baseUrl = iframeMap[id.value]
+  return baseUrl ? `${baseUrl}?widget=true&headers=false` : ''
+})
 </script>
 
 <template>
