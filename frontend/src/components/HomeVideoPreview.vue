@@ -9,11 +9,11 @@
       <VideoGrid :videos="infoVideos" @play="openVideo" />
     </section>
 
-    <!-- 兒童影音精選 -->
+    <!-- 兒少影音精選 -->
     <section class="space-y-4">
       <h2 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
         <svg class="w-5 h-5 text-yellow-500" fill="currentColor" viewBox="0 0 20 20"><path d="M4 4l12 6-12 6V4z" /></svg>
-        兒童影音 精選
+        兒少影音 精選
       </h2>
       <VideoGrid :videos="childrenVideos" @play="openVideo" />
     </section>
@@ -45,55 +45,45 @@
 
 
 <script setup>
-import { ref } from 'vue'
-import FloatingPlayer from '../components/FloatingPlayer.vue' // 確保路徑正確
+import { ref, onMounted } from 'vue'
+import { collection, getDocs } from 'firebase/firestore'
+import { db } from '../firebase'
+
+import FloatingPlayer from '../components/FloatingPlayer.vue'
 import VideoGrid from '../components/VideoGrid.vue'
 
 const floatingPlayerRef = ref()
 
-const previewVideos = ref([
-  {
-    id: 'abc123',
-    title: '台中清晨禱研背講',
-    source: '台中市召會',
-    videoUrl: 'https://www.youtube.com/watch?v=9HuKURB5fSo',
-    coverImage: 'https://img.youtube.com/vi/9HuKURB5fSo/0.jpg',
-  },
-  {
-    id: 'def456',
-    title: '李俊輝弟兄 要點交通',
-    source: '晨興聖言 / 要點複習 / 李俊輝',
-    videoUrl: 'https://www.youtube.com/watch?v=FvdjKZfe8gw&list=PLgy5Els6ka2LlPyNbAahFKuxjWiOfhVoF&index=7',
-    coverImage: 'https://img.youtube.com/vi/vdjKZfe8gw&list=PLgy5Els6ka2LlPyNbAahFKuxjWiOfhVoF&index=7/0.jpg',
-  },
-])
+// 類別影片資料
+const infoVideos = ref([])
+const childrenVideos = ref([])
+const gospelVideos = ref([])
 
-const infoVideos = ref([
-  { id: 'v1', title: '台中清晨禱研背講', source: '台中市召會', 
-  videoUrl: 'https://www.youtube.com/watch?v=9HuKURB5fSo', 
-  coverImage: 'https://img.youtube.com/vi/9HuKURB5fSo/0.jpg' },
-
-  { id: 'v2', title: '李俊輝弟兄 要點交通', source: '台中市召會', 
-  videoUrl: 'https://youtu.be/FvdjKZfe8gw/watch?v=FvdjKZfe8gw', 
-  coverImage: 'https://img.youtube.com/vi/FvdjKZfe8gw/0.jpg' }
-  // 更多本週信息影音
-])
-
-const childrenVideos = ref([
-  { id: 'v2', title: '兒童詩歌1', source: '兒童服事', videoUrl: '...', coverImage: '...' },
-  // 更多兒童影音
-])
-
-const gospelVideos = ref([
-  { id: 'v3', title: '福音短片1', source: '福音行動', videoUrl: '...', coverImage: '...' },
-  // 更多福音影音
-])
-
+// SoundCloud 連結
 const soundcloudEmbedUrl =
   'https://w.soundcloud.com/player/?url=https%3A//api.soundcloud.com/playlists/1871928719&color=%23D9D9D9&auto_play=false&hide_related=true&show_comments=false&show_user=false&show_reposts=false&show_teaser=false&visual=false'
 
-
+// 開啟浮動播放器
 const openVideo = (url) => {
   floatingPlayerRef.value?.open(url)
 }
+
+// 載入 Firestore 中的 videos collection
+const loadVideos = async () => {
+  try {
+    const snapshot = await getDocs(collection(db, 'videos'))
+    const allVideos = snapshot.docs.map(doc => doc.data())
+
+    // 分類（記得和 Firestore 裡的 category 一致）
+    infoVideos.value = allVideos.filter(v => v.category === '當週信息')
+    childrenVideos.value = allVideos.filter(v => v.category === '兒少影音')
+    gospelVideos.value = allVideos.filter(v => v.category === '福音影音')
+  } catch (err) {
+    console.error('載入影片失敗：', err)
+  }
+}
+
+onMounted(() => {
+  loadVideos()
+})
 </script>
