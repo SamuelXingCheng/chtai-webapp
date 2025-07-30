@@ -6,6 +6,7 @@ import ApplicationForms from '../views/downloads/ApplicationForms.vue'
 import ContactView from '../views/ContactView.vue'
 import BeliefsView from '../views/BeliefsView.vue'
 import Profile from '../views/Profile.vue'
+import RegisterView from '../views/RegisterView.vue'
 
 const routes = [
   {
@@ -37,6 +38,11 @@ const routes = [
     path: '/contact',
     name: 'contact',
     component: ContactView, // 聯絡我們
+  },
+  {
+    path: '/register-view',
+    name: 'RegisterView',
+    component: RegisterView
   }
 ]
 

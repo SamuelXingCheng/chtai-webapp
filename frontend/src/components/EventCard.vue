@@ -11,7 +11,7 @@ const props = defineProps<{
   }
 }>()
 
-const emit = defineEmits(['share'])
+const emit = defineEmits(['share', 'view'])
 </script>
 
 <template>
@@ -37,7 +37,7 @@ const emit = defineEmits(['share'])
         <span class="text-emerald-600 font-bold">{{ event.count }}</span> 位
       </p>
       <button
-        @click="emit('share', event)"
+        @click="emit('view', event)"
         class="inline-flex w-[100px] items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-md text-xs md:text-sm shadow-sm transition"
       >
         誰有報名
