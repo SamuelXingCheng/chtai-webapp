@@ -4,6 +4,7 @@ import { defineProps, defineEmits } from 'vue'
 
 const props = defineProps<{
   event: {
+    id: string
     title: string
     date: string
     count: number
@@ -22,12 +23,12 @@ const emit = defineEmits(['share', 'view'])
     <!-- 日期 + 前往報名 -->
     <div class="flex justify-between items-center text-sm text-gray-500 mb-1">
       <p>{{ event.date }}</p>
-      <a
-        :href="event.link"
+      <router-link
+        :to="`/register-form?id=${event.id}`"
         class="inline-flex w-[100px] items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs md:text-sm shadow transition"
       >
         前往報名 →
-      </a>
+      </router-link>
     </div>
 
     <!-- 已報名 + 邀請報名 -->
