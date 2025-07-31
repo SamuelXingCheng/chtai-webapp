@@ -12,6 +12,8 @@ const rawUrl = ref('')
 const iframeLoaded = ref(false)
 const iframeError = ref(false)
 
+const isLoading = ref(true)
+
 const isEmbedUrl = computed(() => rawUrl.value.includes('/pubhtml'))
 
 const iframeUrl = computed(() => {
@@ -22,7 +24,10 @@ const iframeUrl = computed(() => {
 })
 
 onMounted(async () => {
-  if (!id.value) return
+  if (!id.value) {
+    isLoading.value = false
+    return
+  }
 
   const docRef = doc(db, 'events', id.value)
   const snapshot = await getDoc(docRef)
@@ -31,12 +36,21 @@ onMounted(async () => {
     const data = snapshot.data()
     rawUrl.value = data.responseUrl || ''
   }
+  isLoading.value = false
+
 })
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto p-4 pt-[96px] space-y-6">
-    <h1 class="text-2xl font-bold text-gray-800">報名名單查詢</h1>
+  <div class="max-w-3xl mx-auto p-4 pt-[96px]">
+  <div class="bg-white border border-gray-200 shadow-md rounded-xl p-6 space-y-6">
+    <!-- 標題 -->
+    <h1 class="text-2xl font-bold text-gray-800 text-center">報名名單查詢</h1>
+
+    <!-- 🔄 資料載入中 -->
+    <div v-if="isLoading" class="text-gray-400 italic text-center">
+      正在查詢活動資訊...
+    </div>
 
     <!-- ✅ iframe 成功載入 -->
     <div
@@ -60,21 +74,31 @@ onMounted(async () => {
       ></iframe>
     </div>
 
-    <!-- 🔄 若不是 iframe 顯示的網址 -->
-    <div v-if="!isEmbedUrl && rawUrl" class="text-center space-y-2">
-      <p class="text-gray-700">此報名表無法內嵌顯示，請點擊下方查看原始內容：</p>
+    <!-- 🔗 若不是 iframe 顯示的網址 -->
+    <div
+      v-if="!isEmbedUrl && rawUrl"
+      class="text-center space-y-4"
+    >
+      <p class="text-gray-700 text-base">
+        此報名表無法內嵌顯示，請點擊下方查看原始內容：
+      </p>
       <a
         :href="rawUrl"
         target="_blank"
-        class="inline-block px-4 py-2 bg-blue-600 text-white rounded shadow hover:bg-blue-700 transition"
+        class="inline-flex items-center gap-1 px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700 shadow transition text-sm"
       >
         🔗 前往查看原始報名表
       </a>
     </div>
 
     <!-- ❌ 無效 ID 或找不到 responseUrl -->
-    <div v-if="!rawUrl" class="text-red-600">
+    <div
+      v-if="!isLoading && !rawUrl"
+      class="text-red-600 text-center"
+    >
       無效的報名連結，請確認活動 ID 是否正確。
     </div>
   </div>
+</div>
+
 </template>

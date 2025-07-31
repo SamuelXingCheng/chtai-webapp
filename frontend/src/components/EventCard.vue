@@ -41,7 +41,7 @@ const emit = defineEmits(['share', 'view'])
         已報名：
         <span class="text-emerald-600 font-bold">{{ event.count }}</span> 位
       </p> -->
-      <p class="text-gray-400 italic">報名數即將開放</p>
+      <p class="text-gray-400 italic">報名統計即將開放</p>
       <button
         @click="emit('view', event)"
         class="inline-flex w-[90px] justify-center items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-md text-xs md:text-sm shadow-sm transition"
