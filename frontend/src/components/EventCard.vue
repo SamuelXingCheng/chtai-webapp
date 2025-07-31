@@ -28,26 +28,28 @@ const emit = defineEmits(['share', 'view'])
       <p>{{ event.date }}</p>
       <router-link
         :to="`/register-form?id=${event.id}`"
-        class="inline-flex w-[100px] items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs md:text-sm shadow transition"
+        class="inline-flex w-[90px] justify-center items-center gap-1 bg-emerald-500 hover:bg-emerald-600 text-white px-3 py-1.5 rounded-md text-xs md:text-sm shadow transition"
       >
-        前往報名 →
+        <!-- 前往報名 → -->
+        前往報名
       </router-link>
     </div>
 
     <!-- 已報名 + 邀請報名 -->
     <div class="flex justify-between items-center text-sm text-gray-500">
-      <p>
+      <!-- <p>
         已報名：
         <span class="text-emerald-600 font-bold">{{ event.count }}</span> 位
-      </p>
+      </p> -->
+      <p class="text-gray-400 italic">報名數即將開放</p>
       <button
         @click="emit('view', event)"
-        class="inline-flex w-[100px] items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-md text-xs md:text-sm shadow-sm transition"
+        class="inline-flex w-[90px] justify-center items-center gap-1 bg-blue-100 hover:bg-blue-200 text-blue-800 px-3 py-1.5 rounded-md text-xs md:text-sm shadow-sm transition"
       >
         誰有報名
-        <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
+        <!-- <svg xmlns="http://www.w3.org/2000/svg" class="w-3 h-3" fill="currentColor" viewBox="0 0 20 20">
             <path d="M13 7a3 3 0 11-6 0 3 3 0 016 0zM3 14a4 4 0 018 0H3zM16 14a4 4 0 00-3-3.87 5.97 5.97 0 00-.47-.13 6.03 6.03 0 00-.45-.1A4.01 4.01 0 0116 14z" />
-        </svg>
+        </svg> -->
       </button>
     </div>
   </div>

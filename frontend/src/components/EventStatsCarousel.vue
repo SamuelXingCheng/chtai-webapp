@@ -2,7 +2,7 @@
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { collection, getDocs } from 'firebase/firestore'
-import { db } from '../firebase' // 請依你實際 firebase 初始化路徑修改
+import { db } from '../firebase'
 import EventCard from '../components/EventCard.vue'
 
 const showDialog = ref(false)
@@ -17,6 +17,40 @@ function handleViewEvent(event: any) {
   }
 }
 
+// 日期格式範例：2025-09-13 ~ 2025-09-15
+function formatDateRange(start: string, end: string): string {
+  if (!start || !end) return ''
+
+  const [sy, sm, sd] = start.split('-')
+  const [ey, em, ed] = end.split('-')
+
+  const sYear = sy
+  const sMonth = parseInt(sm)
+  const sDay = parseInt(sd)
+  const eYear = ey
+  const eMonth = parseInt(em)
+  const eDay = parseInt(ed)
+
+  // 同一天
+  if (start === end) {
+    return `${sYear}/${sMonth}/${sDay}`
+  }
+
+  // 跨年
+  if (sYear !== eYear) {
+    return `${sYear}/${sMonth}/${sDay} ~ ${eYear}/${eMonth}/${eDay}`
+  }
+
+  // 同年不同月
+  if (sm !== em) {
+    return `${sYear}/${sMonth}/${sDay} ~ ${eMonth}/${eDay}`
+  }
+
+  // 同年同月
+  return `${sYear}/${sMonth}/${sDay} ~ ${eDay}`
+}
+
+
 const allEvents = ref([])
 
 onMounted(async () => {
@@ -26,7 +60,7 @@ onMounted(async () => {
     return {
       id: doc.id,
       title: data.title,
-      date: data.date,
+      date: formatDateRange(data.startDate, data.endDate),
       count: data.count ?? 0,
       registerUrl: data.registerUrl,
       responseUrl: data.responseUrl,
@@ -35,7 +69,6 @@ onMounted(async () => {
       link: `/register?id=${doc.id}`
     }
   })
-  // console.log('🔥 allEvents:', allEvents.value)
 })
 
 const globalEvents = computed(() =>
@@ -51,7 +84,6 @@ function shareEvent(event: { title: string; date: string; link: string }) {
   const url = `https://line.me/R/msg/text/?${encodeURIComponent(shareText)}`
   window.open(url, '_blank')
 }
-
 </script>
 
 <template>
