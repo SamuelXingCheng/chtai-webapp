@@ -34,27 +34,33 @@ onMounted(async () => {
 </script>
 
 <template>
-  <div class="max-w-5xl mx-auto pt-[96px] p-4 space-y-6">
-    <h1 class="text-2xl font-bold text-gray-800">前往報名</h1>
+  <div class="max-w-4xl mx-auto pt-[96px] p-4">
+    <div class="bg-white border border-gray-200 rounded-xl shadow-md p-6 space-y-6">
+      <h1 class="text-2xl font-bold text-gray-800 text-center">報名表單</h1>
 
-    <div v-if="formUrl" class="rounded-lg overflow-hidden border shadow">
-      <iframe
-        :src="formUrl"
-        width="100%"
-        height="1200"
-        class="w-full"
-        frameborder="0"
-      >
+      <!-- ✅ 表單 iframe -->
+      <div v-if="formUrl" class="rounded-lg overflow-hidden border shadow">
+        <iframe
+          :src="formUrl"
+          width="100%"
+          height="1200"
+          class="w-full"
+          frameborder="0"
+        >
+          載入中...
+        </iframe>
+      </div>
+
+      <!-- ❌ 錯誤訊息 -->
+      <div v-else-if="error" class="text-red-600 text-center">
+        無效的報名連結，請確認活動 ID 是否正確。
+      </div>
+
+      <!-- ⏳ 載入中 -->
+      <div v-else class="text-gray-500 text-center">
         載入中...
-      </iframe>
-    </div>
-
-    <div v-else-if="error" class="text-red-600">
-      無效的報名連結，請確認活動 ID 是否正確。
-    </div>
-
-    <div v-else class="text-gray-500">
-      載入中...
+      </div>
     </div>
   </div>
 </template>
+
