@@ -2,10 +2,13 @@
   <header class="fixed top-0 w-full z-50 bg-[#ffffff]/95 backdrop-blur shadow-sm border-b">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
       <!-- Logo 區塊 -->
-      <div class="flex items-center gap-2">
+      <router-link
+        to="/"
+        class="flex items-center gap-2 hover:opacity-80 transition"
+      >
         <img src="/logo.png" alt="Logo" class="h-8 w-auto" />
-        <span class="text-xl font-bold text-gray-800 whitespace-nowrap">台中市召會</span>
-      </div>
+        <span class="text-xl font-bold text-gray-800">台中市召會</span>
+      </router-link>
 
       <!-- 導覽選單（桌面版） -->
         <nav class="hidden md:flex gap-6 text-gray-700 font-medium ml-auto mr-8">
