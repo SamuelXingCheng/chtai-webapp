@@ -4,7 +4,7 @@
     :class="[
       immersive
         ? 'fixed inset-0 z-50 bg-[#262626] text-[#eaeaea] overflow-y-auto px-6 py-10'
-        : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8',
+        : 'max-w-7xl mx-auto bg-beige px-4 sm:px-6 lg:px-8 py-8',
       'space-y-6 transition-all duration-300'
     ]"
   >
@@ -45,7 +45,7 @@
         class="ml-auto px-3 py-1 text-sm rounded border"
         :class="immersive ? 'bg-[#444] text-[#eee]' : 'bg-white text-black hover:bg-gray-100'"
       >
-        {{ immersive ? '返回一般模式' : '🌓 沉浸閱讀' }}
+        {{ immersive ? '返回一般模式' : '沉浸閱讀' }}
       </button>
     </div>
 

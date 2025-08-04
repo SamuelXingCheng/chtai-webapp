@@ -2,7 +2,9 @@
 <template>
   <div
     :class="[
-      ui.isReadingFullscreen ? 'pt-0 bg-[#262626] text-[#eaeaea]' : (ui.shouldShowReminder ? 'pt-[96px]' : 'pt-[48px] bg-beige text-gray-800'),
+      ui.isReadingFullscreen
+        ? 'pt-0 bg-[#262626] text-[#eaeaea]'
+        : `bg-beige text-gray-800 ${ui.shouldShowReminder ? 'pt-[96px]' : 'pt-[48px]'}`,
       'min-h-screen'
     ]"
   >
@@ -15,6 +17,7 @@
     <router-view />
   </div>
 </template>
+
 
 <script setup lang="ts">
 import TopBar from './components/TopBar.vue'
