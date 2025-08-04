@@ -1,33 +1,32 @@
+<!-- src/App.vue -->
 <template>
-  <!-- 根據提醒條顯示與否調整 padding-top -->
-  <div :class="[shouldShowReminder ? 'pt-[96px]' : 'pt-[48px]', 'bg-beige min-h-screen text-gray-800']">
-    <TopBar v-model="shouldShowReminder" @menu-open="handleMenuOpen" />
+  <div
+    :class="[
+      ui.isReadingFullscreen ? 'pt-0 bg-[#262626] text-[#eaeaea]' : (ui.shouldShowReminder ? 'pt-[96px]' : 'pt-[48px] bg-beige text-gray-800'),
+      'min-h-screen'
+    ]"
+  >
+    <!-- ✅ 只有在非沈浸模式下才顯示 TopBar -->
+    <TopBar
+      v-if="!ui.isReadingFullscreen"
+      v-model="ui.shouldShowReminderRaw"
+      @menu-open="handleMenuOpen"
+    />
     <router-view />
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, watch } from 'vue'
 import TopBar from './components/TopBar.vue'
+import { useUIStore } from './stores/ui'
 
-// 控制提醒條顯示（傳給 TopBar 的 v-model）
-const shouldShowReminder = ref(true)
+const ui = useUIStore()
 
-// 記錄「原始是否該提醒」，不會被選單開關影響
-const shouldShowReminderRaw = ref(true)
-
-// 每次 TopBar emit 的值都記下來
-watch(shouldShowReminder, (val) => {
-  shouldShowReminderRaw.value = val
-})
-
-// 處理選單打開/關閉
 function handleMenuOpen(open: boolean) {
   if (open) {
-    shouldShowReminder.value = false // 點開選單就隱藏提醒條
+    ui.toggleReminder(false)
   } else {
-    shouldShowReminder.value = shouldShowReminderRaw.value // 關掉時根據原始判斷是否恢復
+    ui.toggleReminder(true)
   }
 }
 </script>
-
