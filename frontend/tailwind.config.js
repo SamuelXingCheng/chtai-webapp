@@ -6,10 +6,11 @@ module.exports = {
     theme: {
         extend: {
           colors: {
-            beige: '#FAF9F6'
+            beige: '#FAF9F6',
+            primary: '#181E2A',
           }
         }
       },
-    plugins: [],
+      plugins: [require('@tailwindcss/typography')],
   }
   
