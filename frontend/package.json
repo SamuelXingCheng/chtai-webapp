@@ -16,9 +16,11 @@
     "vue": "^3.4.15"
   },
   "dependencies": {
+    "@headlessui/vue": "^1.7.23",
     "@splidejs/vue-splide": "^0.6.12",
     "@vueuse/core": "^13.5.0",
     "firebase": "^12.0.0",
+    "pdfjs-dist": "^3.11.174",
     "swiper": "^11.2.10",
     "vue-router": "^4.5.1"
   }

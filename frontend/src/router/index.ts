@@ -8,6 +8,7 @@ import BeliefsView from '../views/BeliefsView.vue'
 import Profile from '../views/Profile.vue'
 import RegisterView from '../views/RegisterView.vue'
 import RegisterFormView from '../views/RegisterFormView.vue'
+import WeeklyView from '../views/WeeklyView.vue'
 
 const routes = [
   {
@@ -49,7 +50,11 @@ const routes = [
     path: '/register-view',
     name: 'RegisterView',
     component: RegisterView
-  }
+  },
+  { path: '/weekly',
+    name: 'Weekly', 
+    component: WeeklyView 
+  },
 ]
 
 const router = createRouter({
