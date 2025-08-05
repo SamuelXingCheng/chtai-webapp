@@ -4,7 +4,7 @@
     <!-- 標題 -->
     <h2
       v-if="section.title"
-      class="text-xl font-semibold text-amber-800 dark:text-[#C19960] border-b pb-1"
+      class="text-4xl font-semibold text-amber-800 dark:text-[#C19960] border-b pb-1"
     >
       {{ section.title }}
     </h2>
@@ -25,18 +25,26 @@
 
     <!-- 多圖區塊 -->
     <div v-if="section.type === 'image'" class="space-y-2">
-      <p class="leading-relaxed whitespace-pre-line">
-        {{ section.content }}
-      </p>
-      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+    <p
+        v-for="(para, i) in imageParagraphs"
+        :key="i"
+        :class="[
+        'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
+        i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
+        ]"
+    >
+        {{ para }}
+    </p>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <img
-          v-for="(src, index) in section.images"
-          :key="index"
-          :src="src"
-          class="rounded-lg shadow w-full"
-          loading="lazy"
+        v-for="(src, index) in section.images"
+        :key="index"
+        :src="src"
+        class="rounded-lg shadow w-full"
+        loading="lazy"
         />
-      </div>
+    </div>
     </div>
 
     <!-- 禱告事項 -->
@@ -44,21 +52,31 @@
       v-if="section.type === 'prayer'"
       class="list-disc pl-6 space-y-1 leading-relaxed"
     >
-      <li v-for="(item, index) in section.items" :key="index">
+      <li
+        v-for="(item, i) in section.items"
+        :key="i"
+        :class="[
+            'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
+            i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
+        ]"
+        >
         {{ item }}
-      </li>
+        </li>
     </ul>
 
     <!-- 多層次報告事項 -->
     <div v-if="section.type === 'report'" class="space-y-1">
       <p
-        v-for="(line, index) in section.lines"
-        :key="index"
-        :class="getReportLineClass(line)"
-        class="whitespace-pre-line"
-      >
+        v-for="(line, i) in section.lines"
+        :key="i"
+        :class="[
+            getReportLineClass(line),
+            'whitespace-pre-line rounded-md px-3 py-2',
+            i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
+        ]"
+        >
         {{ line }}
-      </p>
+        </p>
     </div>
   </section>
 </template>
@@ -80,6 +98,14 @@ const props = defineProps<{
 // 分段 content 用於 text 類型
 const paragraphs = computed(() => {
   if (props.section.type !== 'text' || !props.section.content) return []
+  return props.section.content
+    .split('\n')
+    .map(p => p.trim())
+    .filter(p => p.length > 0)
+})
+
+const imageParagraphs = computed(() => {
+  if (props.section.type !== 'image' || !props.section.content) return []
   return props.section.content
     .split('\n')
     .map(p => p.trim())
