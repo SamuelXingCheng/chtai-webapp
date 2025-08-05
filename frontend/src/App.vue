@@ -21,7 +21,7 @@
 
 
 <script setup lang="ts">
-import TopBar from './components/TopBar.vue'
+import TopBar from './components/layout/TopBar.vue'
 import { useUIStore } from './stores/ui'
 import { onMounted } from 'vue'
 

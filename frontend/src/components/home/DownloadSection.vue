@@ -1,4 +1,4 @@
-<!-- components/DownloadSection.vue -->
+<!-- components/home/DownloadSection.vue -->
 <template>
   <section class="bg-beige pt-3 pb-3">
       <div class="max-w-7xl mx-auto px-4">

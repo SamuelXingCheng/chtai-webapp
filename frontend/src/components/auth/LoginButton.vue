@@ -1,3 +1,4 @@
+<!-- components/auth/LoginButton.vue -->
 <template>
   <div>
     <!-- 尚未登入時顯示登入按鈕 -->
@@ -32,7 +33,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { auth, provider } from '../firebase'
+import { auth, provider } from '../../firebase'
 import { signInWithPopup, onAuthStateChanged, signOut } from 'firebase/auth'
 
 const router = useRouter()

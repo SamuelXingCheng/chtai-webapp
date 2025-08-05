@@ -1,3 +1,4 @@
+<!-- src/components/layout/NavBar.vue -->
 <template>
   <header class="fixed top-0 w-full z-50 bg-[#ffffff]/95 backdrop-blur shadow-sm border-b">
     <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex justify-between items-center h-20">
@@ -84,7 +85,7 @@
     import { ref, onMounted, watch } from 'vue'
     import { getAuth, onAuthStateChanged } from 'firebase/auth'
     import { RouterLink } from 'vue-router'
-    import LoginButton from '../components/LoginButton.vue'
+    import LoginButton from '../../components/auth/LoginButton.vue'
 
     const emit = defineEmits<{
       (e: 'menu-open', value: boolean): void

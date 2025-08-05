@@ -1,3 +1,4 @@
+<!-- components/video/FloatingPlayer.vue -->
 <template>
   <div
     v-if="visible"

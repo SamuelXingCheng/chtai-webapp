@@ -1,3 +1,4 @@
+<!-- src/components/layout/FooterSection.vue -->
 <template>
   <footer class="bg-gray-100 text-gray-700 mt-16 py-6">
     <div class="max-w-6xl mx-auto px-4 flex flex-col md:flex-row justify-between items-center gap-4 text-sm">

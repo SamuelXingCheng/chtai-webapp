@@ -1,4 +1,4 @@
-<!-- components/WeeklyReader.vue -->
+<!-- components/weekly/WeeklyReader.vue -->
 <template>
   <div
     :class="[
@@ -75,9 +75,9 @@
 
 <script setup lang="ts">
 import { ref, computed, watch } from 'vue'
-import { weeklyMessages } from '../mock/weeklyMessages'
+import { weeklyMessages } from '../../mock/weeklyMessages'
 import SearchWeekSelector from './SearchWeekSelector.vue'
-import { useUIStore } from '../stores/ui'
+import { useUIStore } from '../../stores/ui'
 
 const ui = useUIStore()
 

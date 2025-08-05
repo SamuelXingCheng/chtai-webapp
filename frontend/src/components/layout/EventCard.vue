@@ -1,4 +1,4 @@
-<!-- components/EventCard.vue -->
+<!-- components/layout/EventCard.vue -->
 <script setup lang="ts">
 import { defineProps, defineEmits } from 'vue'
 

@@ -1,4 +1,4 @@
-<!-- components/SearchWeekSelector.vue -->
+<!-- components/weekly/SearchWeekSelector.vue -->
 <script setup lang="ts">
 import { ref, computed, defineProps, defineEmits } from 'vue'
 import {

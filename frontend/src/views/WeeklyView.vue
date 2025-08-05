@@ -4,5 +4,5 @@
 </template>
 
 <script setup lang="ts">
-import WeeklyReader from '../components/WeeklyReader.vue'
+import WeeklyReader from '../components/weekly/WeeklyReader.vue'
 </script>

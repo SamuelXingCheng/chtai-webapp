@@ -1,4 +1,4 @@
-<!-- components/ReadingFullscreen.vue -->
+<!-- components/weekly/ReadingFullscreen.vue -->
 <template>
   <Transition name="fade">
     <div
@@ -29,7 +29,7 @@
 
 <script setup lang="ts">
 import { onMounted, onBeforeUnmount, watch } from 'vue'
-import { useUIStore } from '../stores/ui'
+import { useUIStore } from '../../stores/ui'
 
 const ui = useUIStore()
 

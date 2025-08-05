@@ -1,4 +1,4 @@
-<!-- src/components/PdfViewer.vue -->
+<!-- src/components/weekly/PdfViewer.vue -->
 <template>
   <canvas ref="canvas" class="w-full border" />
 </template>

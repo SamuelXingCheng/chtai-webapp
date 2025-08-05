@@ -1,9 +1,9 @@
-<!-- components/EventStatsCarousel.vue -->
+<!-- components/layout/EventStatsCarousel.vue -->
 <script setup lang="ts">
 import { ref, onMounted, computed } from 'vue'
 import { collection, getDocs } from 'firebase/firestore'
-import { db } from '../firebase'
-import EventCard from '../components/EventCard.vue'
+import { db } from '../../firebase'
+import EventCard from '../../components/layout/EventCard.vue'
 
 const showDialog = ref(false)
 

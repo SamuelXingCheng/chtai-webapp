@@ -1,3 +1,4 @@
+<!-- src/views/HomeView.vue -->
 <template>
   <div>
     
@@ -19,16 +20,16 @@
 
 <script setup lang="ts">
 
-import Carousel from '../components/Carousel.vue'
+import Carousel from '../components/layout/Carousel.vue'
 // import HeroSection from '../components/HeroSection.vue'
-import LatestVideos from '../components/LatestVideos.vue'
-import FeatureSection from '../components/FeatureSection.vue'
-import DownloadSection from '../components/DownloadSection.vue'
-import FooterSection from '../components/FooterSection.vue'
+import LatestVideos from '../components/video/LatestVideos.vue'
+import FeatureSection from '../components/home/FeatureSection.vue'
+import DownloadSection from '../components/home/DownloadSection.vue'
+import FooterSection from '../components/layout/FooterSection.vue'
 
-import SpiritualWall from '../components/SpiritualWall.vue'
-import EventStatsCarousel from '../components/EventStatsCarousel.vue'
-import HomeVideoPreview from '../components/HomeVideoPreview.vue'
+import SpiritualWall from '../components/layout/SpiritualWall.vue'
+import EventStatsCarousel from '../components/layout/EventStatsCarousel.vue'
+import HomeVideoPreview from '../components/video/HomeVideoPreview.vue'
 
 </script>
 

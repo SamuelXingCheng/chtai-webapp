@@ -1,3 +1,4 @@
+<!-- components/video/HomeVideoPreview.vue -->
 <template>
   <section class="bg-white rounded-xl shadow p-4 space-y-8">
     <!-- 本週信息影音精選 -->
@@ -47,10 +48,10 @@
 <script setup>
 import { ref, onMounted } from 'vue'
 import { collection, getDocs } from 'firebase/firestore'
-import { db } from '../firebase'
+import { db } from '../../firebase'
 
-import FloatingPlayer from '../components/FloatingPlayer.vue'
-import VideoGrid from '../components/VideoGrid.vue'
+import FloatingPlayer from '../../components/video/FloatingPlayer.vue'
+import VideoGrid from '../../components/video/VideoGrid.vue'
 
 const floatingPlayerRef = ref()
 

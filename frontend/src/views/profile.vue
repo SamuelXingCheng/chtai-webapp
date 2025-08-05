@@ -1,3 +1,4 @@
+<!-- src/views/profile.vue -->
 <script setup>
 import { ref, onMounted } from 'vue'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'

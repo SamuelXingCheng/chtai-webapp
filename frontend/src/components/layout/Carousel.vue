@@ -1,3 +1,4 @@
+<!-- components/layout/Carousel.vue -->
 <template>
   <section class="bg-beige pt-5 pb-3">
     <div class="max-w-7xl mx-auto px-4">

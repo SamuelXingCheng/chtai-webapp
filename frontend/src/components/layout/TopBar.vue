@@ -1,4 +1,4 @@
-<!-- src/components/TopBar.vue -->
+<!-- src/components/layout/TopBar.vue -->
 <template>
   <div>
     <!-- 提醒條在上層，吸頂 -->
@@ -34,7 +34,7 @@ import { ref, onMounted, computed } from 'vue'
 import { RouterLink } from 'vue-router'
 import { getAuth, onAuthStateChanged } from 'firebase/auth'
 import { doc, getDoc } from 'firebase/firestore'
-import { auth, db } from '../firebase'
+import { auth, db } from '../../firebase'
 import Navbar from './NavBar.vue'
 
 // 🧠 接收 v-model 的值與事件
