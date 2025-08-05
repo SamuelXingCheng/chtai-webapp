@@ -11,8 +11,8 @@
     <!-- 標題區塊：沉浸模式時隱藏 -->
     <div v-if="!immersive" class="space-y-1">
       <h1 class="text-3xl font-bold text-gray-800">週訊閱讀</h1>
-      <div v-if="selectedMessage" class="text-blue-600 font-semibold">
-        週訊：{{ selectedMessage.title }}
+      <div v-if="weeklyData.title" class="text-blue-600 font-semibold">
+        週訊：{{ weeklyData.title }}
       </div>
     </div>
 
@@ -57,31 +57,35 @@
       />
     </div>
 
-    <!-- 週訊 HTML 內文 -->
-    <section
-      class="prose prose-lg max-w-none rounded-xl p-6 transition-all duration-300"
+    <!-- JSON 週訊內容 -->
+    <div
+      class="prose max-w-none rounded-xl p-6 transition-all duration-300"
       :class="[
         immersive
           ? 'bg-transparent border-none shadow-none prose-invert'
           : 'bg-white border shadow text-gray-900',
+        fontSizeClass
       ]"
-      :style="{ fontSize: fontSize + 'px' }"
-      v-if="selectedMessage"
-      v-html="selectedMessage.htmlContent"
-    />
+      v-if="weeklyData.sections.length"
+    >
+      <WeeklySection
+        v-for="(section, index) in weeklyData.sections"
+        :key="index"
+        :section="section"
+      />
+    </div>
+
   </div>
 </template>
 
-
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue'
-import { weeklyMessages } from '../../mock/weeklyMessages'
-import SearchWeekSelector from './SearchWeekSelector.vue'
+import { ref, computed, onMounted } from 'vue'
 import { useUIStore } from '../../stores/ui'
+import SearchWeekSelector from './SearchWeekSelector.vue'
+import WeeklySection from './WeeklySection.vue'
+import { weeklyMessages } from '../../mock/weeklyMessages'
 
 const ui = useUIStore()
-
-const selectedMessage = ref(weeklyMessages[0])
 const fontSize = ref(18)
 
 const immersive = computed({
@@ -90,49 +94,85 @@ const immersive = computed({
 })
 
 function increaseFontSize() {
-  fontSize.value = Math.min(fontSize.value + 2, 32)
+  fontSize.value = Math.min(fontSize.value + 4, 32)
 }
 function decreaseFontSize() {
-  fontSize.value = Math.max(fontSize.value - 2, 12)
+  fontSize.value = Math.max(fontSize.value - 4, 12)
 }
+
+const fontSizeClass = computed(() => {
+  if (fontSize.value <= 10) return 'prose-xs'
+  if (fontSize.value <= 14) return 'prose-sm'
+  if (fontSize.value <= 18) return 'prose-base'
+  if (fontSize.value <= 22) return 'prose-lg'
+  if (fontSize.value <= 26) return 'prose-xl'
+  if (fontSize.value <= 30) return 'prose-2xl'
+  return 'prose-3xl'
+})
+
+// 資料格式
+interface Section {
+  type: string
+  title?: string
+  content?: string
+  images?: string[]
+  items?: string[]
+  lines?: string[]
+}
+interface WeeklyData {
+  id: string
+  title: string
+  sections: Section[]
+}
+
+const weeklyData = ref<WeeklyData>({
+  id: '',
+  title: '',
+  sections: []
+})
+
+onMounted(async () => {
+  try {
+    const res = await fetch('/newsite/data/weekly/2025-08-03.json')
+    if (!res.ok) {
+      console.error('⚠️ 無法載入週訊 JSON：', res.status)
+      return
+    }
+
+    const data = await res.json()
+    weeklyData.value = data
+  } catch (err) {
+    console.error('❌ 載入週訊資料錯誤：', err)
+  }
+})
+
 function selectMessage(msg: any) {
-  selectedMessage.value = msg
+  // 可切換週訊版本（若未來支援）
+  weeklyData.value = msg
 }
 </script>
-
 
 <style scoped>
 .prose {
   @apply font-sans text-primary font-normal;
   line-height: 1.75;
 }
-
-/* 白天模式標題 */
 .prose h1, .prose h2, .prose h3 {
-  @apply text-amber-800 dark:text-[#C19960]; /* 深色模式也用 C19960 金棕色 */
+  @apply text-amber-800 dark:text-[#C19960];
 }
-
-/* 暗色模式整體文字調整為較柔和的白灰 */
 .prose.prose-invert {
-  color: #eaeaea; /* RGB(234,234,234) */
+  color: #eaeaea;
 }
-
-/* 標題：金棕色 */
 .prose.prose-invert h1,
 .prose.prose-invert h2,
 .prose.prose-invert h3 {
-  color: #C19960; /* 替代原本的 yellow-300 */
+  color: #C19960;
 }
-
-/* 連結：琥珀色 hover 時更亮 */
 .prose.prose-invert a {
-  color: #e6b86d; /* 金黃色調 */
+  color: #e6b86d;
   text-decoration: underline;
 }
-
-/* 粗體：略帶米白 */
 .prose.prose-invert strong {
   color: #f5f5f5;
 }
 </style>
-
