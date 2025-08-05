@@ -11,7 +11,8 @@
     <!-- ✅ 只有在非沈浸模式下才顯示 TopBar -->
     <TopBar
       v-if="!ui.isReadingFullscreen"
-      v-model="ui.shouldShowReminderRaw"
+      v-model:shouldShowReminderRaw="ui.shouldShowReminderRaw"
+      :shouldShowReminder="ui.shouldShowReminder"
       @menu-open="handleMenuOpen"
     />
     <router-view />
@@ -22,14 +23,15 @@
 <script setup lang="ts">
 import TopBar from './components/TopBar.vue'
 import { useUIStore } from './stores/ui'
+import { onMounted } from 'vue'
 
 const ui = useUIStore()
 
 function handleMenuOpen(open: boolean) {
-  if (open) {
-    ui.toggleReminder(false)
-  } else {
-    ui.toggleReminder(true)
-  }
+  ui.toggleReminder(!open)
 }
+
+onMounted(() => {
+  ui.enableReminder = false
+})
 </script>

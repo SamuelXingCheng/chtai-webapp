@@ -5,11 +5,12 @@ import { ref } from 'vue'
 export const useUIStore = defineStore('ui', {
     state: () => ({
       isReadingFullscreen: false,
-      shouldShowReminderRaw: true
+      shouldShowReminderRaw: false,
+      enableReminder: false, 
     }),
     getters: {
-      shouldShowReminder: (state) =>
-        !state.isReadingFullscreen && state.shouldShowReminderRaw
+    shouldShowReminder: (state) =>
+        state.enableReminder && !state.isReadingFullscreen && state.shouldShowReminderRaw
     },
     actions: {
       toggleReminder(val: boolean) {
