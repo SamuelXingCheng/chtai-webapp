@@ -67,7 +67,7 @@
     <!-- 多層次報告事項 -->
     <div v-if="section.type === 'report'" class="space-y-1">
       <p
-        v-for="(line, i) in section.lines"
+        v-for="(line, i) in reportLines"
         :key="i"
         :class="[
             getReportLineClass(line),
@@ -112,10 +112,29 @@ const imageParagraphs = computed(() => {
     .filter(p => p.length > 0)
 })
 
+const reportLines = computed(() => {
+  if (props.section.type !== 'report' || !props.section.content) return []
+
+  // 拆段邏輯：以段首為切點（中文數字、阿拉伯數字等）
+  const raw = props.section.content
+
+  // 在「一、」「二、」「三、」前加換行
+  const withBreaks = raw
+    .replace(/([^\n]|^)([一二三四五六七八九十])、/g, '\n$2、')
+    .replace(/([^\n]|^)([０-９\d]{1,2})、/g, '\n$2、') // 全形數字也切
+    .replace(/([^\n]|^)[①-⑩]/g, '\n$&') // 若未來用圈號數字也切
+
+  return withBreaks
+    .split('\n')
+    .map(line => line.trim())
+    .filter(line => line.length > 0)
+})
+
+
 function getReportLineClass(line: string) {
-  if (/^\(\d+\)/.test(line)) return 'ml-8 text-sm text-gray-700'
-  if (/^\d+\./.test(line)) return 'ml-4 text-base'
-  if (/^[一二三四五六七八九十]/.test(line)) return 'mt-4 font-semibold text-base'
-  return 'text-base'
+  if (/^\(\d+\)/.test(line)) return 'ml-8'
+  if (/^\d+\./.test(line)) return 'ml-4'
+  if (/^[一二三四五六七八九十]/.test(line)) return 'mt-4 font-semibold'
+  return ''
 }
 </script>
