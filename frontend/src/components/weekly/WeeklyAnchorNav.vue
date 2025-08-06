@@ -1,36 +1,29 @@
 <!-- components/weekly/WeeklyAnchorNav.vue -->
 <template>
   <div class="hidden xl:block">
-    <!-- 頂端目前章節標題 -->
-    <!-- <div
-    v-if="currentTitle"
-    class="fixed top-[64px] right-[180px] z-40 text-sm text-amber-700 font-semibold bg-white/80 dark:bg-[#262626]/80 px-3 py-2 rounded shadow"
-    >
-    {{ currentTitle }}
-    </div> -->
-
-    <!-- 側邊導覽清單 -->
-    <div
-      class="fixed right-6 top-[120px] w-52 z-30 transition-opacity duration-300"
-      :class="{ 'opacity-0 pointer-events-none': isAtBottom }"
-    >
-      <ul class="space-y-2 text-sm">
-        <li
-          v-for="(section, index) in sections"
-          :key="index"
-          @click="scrollToSection(index)"
-          class="cursor-pointer hover:text-amber-700 transition"
-          :class="activeIndex === index ? 'text-amber-800 font-bold' : 'text-gray-500'"
+    <aside class="fixed top-[120px] right-6 w-[200px] space-y-3 text-sm text-gray-800">
+    <div v-for="(item, index) in navItems" :key="index">
+        <div
+        v-if="item.type === 'title'"
+        @click="scrollToCategory(item.key)"
+        class="text-xs font-bold text-amber-700 mt-4 mb-1 cursor-pointer hover:text-amber-500"
         >
-          {{ section.title }}
-        </li>
-      </ul>
+        {{ item.label }}
+        </div>
+        <div
+        v-else-if="item.type === 'link'"
+        @click="scrollToSection(item.target)"
+        class="cursor-pointer hover:text-amber-700 mb-1"
+        >
+        {{ item.label }}
+        </div>
     </div>
+    </aside>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onBeforeUnmount, watch } from 'vue'
+import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
 const props = defineProps<{ sections: { title: string }[] }>()
 
@@ -65,6 +58,35 @@ function handleScroll() {
         break
       }
     }
+  }
+}
+const categories = [
+  { key: 'truth', label: '真理材料' },
+  { key: 'report', label: '報導見證' },
+  { key: 'announcement', label: '報告與代禱' }
+]
+
+const navItems = computed(() => {
+  return categories.flatMap(cat => {
+    const matchedSections = props.sections
+      .map((section, i) => ({ ...section, index: i }))
+      .filter(section => section.category === cat.key)
+
+    return [
+      { type: 'title', label: cat.label, key: cat.key },
+      ...matchedSections.map(section => ({
+        type: 'link',
+        label: section.title,
+        target: section.index
+      }))
+    ]
+  })
+})
+
+function scrollToCategory(categoryKey: string) {
+  const el = document.querySelector(`[id^="category-anchor-${categoryKey}-"]`)
+  if (el) {
+    el.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
 }
 

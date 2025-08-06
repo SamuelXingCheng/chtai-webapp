@@ -16,38 +16,67 @@
       </div>
     </div>
 
-    <!-- 字體大小與沉浸切換按鈕 -->
-    <div class="flex gap-2 items-center">
-      <span
-        class="text-sm"
-        :class="immersive ? 'text-[#ccc]' : 'text-gray-600'"
-      >
-        字體大小：
-      </span>
+    <!-- 替換 WeeklyReader.vue 中這一段 -->
+    <div
+      class="sticky top-[75px] z-30 bg-beige"
+      v-if="!immersive"
+    >
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+
+        <!-- 右側：字體大小控制 + 沉浸閱讀 -->
+        <div class="flex items-center gap-4">
+          <!-- 字體大小控制 -->
+          <div class="flex items-center gap-2">
+            <span class="text-sm text-gray-600">字體大小：</span>
+            <button
+              @click="decreaseFontSize"
+              class="px-2 py-1 text-sm rounded border bg-white text-black hover:bg-gray-100"
+            >
+              A-
+            </button>
+            <button
+              @click="increaseFontSize"
+              class="px-2 py-1 text-sm rounded border bg-white text-black hover:bg-gray-100"
+            >
+              A+
+            </button>
+          </div>
+
+          <!-- 沉浸閱讀按鈕 -->
+          <button
+            @click="immersive = !immersive"
+            class="px-3 py-1 text-sm rounded border bg-white text-black hover:bg-gray-100"
+          >
+            沉浸閱讀
+          </button>
+        </div>
+      </div>
+    </div>
+
+
+    <!-- 沉浸模式時：只顯示字體控制與切換按鈕 -->
+    <div class="flex gap-2 items-center" v-else>
+      <span class="text-sm text-[#ccc]">字體大小：</span>
       <button
         @click="decreaseFontSize"
-        class="px-2 py-1 text-sm rounded border"
-        :class="immersive ? 'bg-[#444] text-[#eee]' : 'bg-white text-black hover:bg-gray-100'"
+        class="px-2 py-1 text-sm rounded border bg-[#444] text-[#eee]"
       >
         A-
       </button>
       <button
         @click="increaseFontSize"
-        class="px-2 py-1 text-sm rounded border"
-        :class="immersive ? 'bg-[#444] text-[#eee]' : 'bg-white text-black hover:bg-gray-100'"
+        class="px-2 py-1 text-sm rounded border bg-[#444] text-[#eee]"
       >
         A+
       </button>
-
-      <!-- 沉浸閱讀模式切換 -->
       <button
         @click="immersive = !immersive"
-        class="ml-auto px-3 py-1 text-sm rounded border"
-        :class="immersive ? 'bg-[#444] text-[#eee]' : 'bg-white text-black hover:bg-gray-100'"
+        class="ml-auto px-3 py-1 text-sm rounded border bg-[#444] text-[#eee]"
       >
-        {{ immersive ? '返回一般模式' : '沉浸閱讀' }}
+        返回一般模式
       </button>
     </div>
+
 
     <!-- 搜尋功能區塊：沉浸模式時隱藏 -->
     <div v-if="!immersive" class="w-full">

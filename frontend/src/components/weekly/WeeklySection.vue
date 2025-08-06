@@ -2,6 +2,19 @@
 <template>
   <!-- ✅ 加上 id 屬性供 ScrollSpy 使用 -->
   <section :id="`section-${index}`" class="space-y-4 scroll-mt-[120px]">
+    <!-- ✅ 額外設立錨點（為 scroll 對齊用） -->
+    <div
+      :id="`category-anchor-${section.category}-${index}`"
+      class="h-[1px] scroll-mt-[120px]"
+    />
+
+    <!-- 🚫 原本這個有 id 的分類標籤移除 id -->
+    <div
+      class="inline-block rounded px-2 py-1 text-xs font-bold text-white bg-amber-700"
+    >
+      {{ categoryLabel }}
+    </div>
+
     <!-- 標題 -->
     <h2
       v-if="section.title"
@@ -93,8 +106,9 @@ const props = defineProps<{
     images?: string[]
     items?: string[]
     lines?: string[]
+    category?: string
   },
-  index: number // ✅ 新增 index prop
+  index: number
 }>()
 
 const paragraphs = computed(() => {
@@ -125,6 +139,16 @@ const reportLines = computed(() => {
     .map(line => line.trim())
     .filter(line => line.length > 0)
 })
+
+const categoryMap: Record<string, string> = {
+  truth: '真理材料',
+  report: '報導見證',
+  announcement: '報告與代禱'
+}
+
+const categoryKey = computed(() => props.section.category || '')
+
+const categoryLabel = computed(() => categoryMap[categoryKey.value] || '')
 
 function getReportLineClass(line: string) {
   if (/^\(\d+\)/.test(line)) return 'ml-8'
