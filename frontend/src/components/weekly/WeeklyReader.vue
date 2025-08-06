@@ -57,23 +57,29 @@
       />
     </div>
 
-    <!-- JSON 週訊內容 -->
-    <div
-      class="prose max-w-none rounded-xl p-6 transition-all duration-300"
-      :class="[
-        immersive
-          ? 'bg-transparent border-none shadow-none prose-invert'
-          : 'bg-white border shadow text-gray-900',
-        fontSizeClass
-      ]"
-      v-if="weeklyData.sections.length"
-    >
-      <WeeklySection
-        v-for="(section, index) in weeklyData.sections"
-        :key="index"
-        :section="section"
-      />
+    <!-- JSON 週訊內容區塊，包含快速跳轉導覽 -->
+    <div class="relative">
+      <WeeklyAnchorNav :sections="weeklyData.sections" />
+
+      <div
+        class="prose max-w-none rounded-xl p-6 transition-all duration-300"
+        :class="[
+          immersive
+            ? 'bg-transparent border-none shadow-none prose-invert'
+            : 'bg-white border shadow text-gray-900',
+          fontSizeClass
+        ]"
+        v-if="weeklyData.sections.length"
+      >
+        <WeeklySection
+          v-for="(section, index) in weeklyData.sections"
+          :key="index"
+          :section="section"
+          :index="index"
+        />
+      </div>
     </div>
+    <MobileFloatingTOC :sections="weeklyData.sections" />
 
   </div>
 </template>
@@ -84,6 +90,8 @@ import { useUIStore } from '../../stores/ui'
 import SearchWeekSelector from './SearchWeekSelector.vue'
 import WeeklySection from './WeeklySection.vue'
 import { weeklyMessages } from '../../mock/weeklyMessages'
+import WeeklyAnchorNav from '../weekly/WeeklyAnchorNav.vue'
+import MobileFloatingTOC from '../weekly/MobileFloatingTOC.vue'
 
 const ui = useUIStore()
 const fontSize = ref(18)

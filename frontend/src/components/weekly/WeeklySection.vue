@@ -1,6 +1,7 @@
 <!-- components/weekly/WeeklySection.vue -->
 <template>
-  <section class="space-y-4">
+  <!-- ✅ 加上 id 屬性供 ScrollSpy 使用 -->
+  <section :id="`section-${index}`" class="space-y-4 scroll-mt-[120px]">
     <!-- 標題 -->
     <h2
       v-if="section.title"
@@ -25,26 +26,26 @@
 
     <!-- 多圖區塊 -->
     <div v-if="section.type === 'image'" class="space-y-2">
-    <p
+      <p
         v-for="(para, i) in imageParagraphs"
         :key="i"
         :class="[
-        'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
-        i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
+          'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
+          i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
         ]"
-    >
+      >
         {{ para }}
-    </p>
+      </p>
 
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <img
-        v-for="(src, index) in section.images"
-        :key="index"
-        :src="src"
-        class="rounded-lg shadow w-full"
-        loading="lazy"
+          v-for="(src, index) in section.images"
+          :key="index"
+          :src="src"
+          class="rounded-lg shadow w-full"
+          loading="lazy"
         />
-    </div>
+      </div>
     </div>
 
     <!-- 禱告事項 -->
@@ -56,12 +57,12 @@
         v-for="(item, i) in section.items"
         :key="i"
         :class="[
-            'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
-            i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
+          'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
+          i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
         ]"
-        >
+      >
         {{ item }}
-        </li>
+      </li>
     </ul>
 
     <!-- 多層次報告事項 -->
@@ -70,13 +71,13 @@
         v-for="(line, i) in reportLines"
         :key="i"
         :class="[
-            getReportLineClass(line),
-            'whitespace-pre-line rounded-md px-3 py-2',
-            i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
+          getReportLineClass(line),
+          'whitespace-pre-line rounded-md px-3 py-2',
+          i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
         ]"
-        >
+      >
         {{ line }}
-        </p>
+      </p>
     </div>
   </section>
 </template>
@@ -92,10 +93,10 @@ const props = defineProps<{
     images?: string[]
     items?: string[]
     lines?: string[]
-  }
+  },
+  index: number // ✅ 新增 index prop
 }>()
 
-// 分段 content 用於 text 類型
 const paragraphs = computed(() => {
   if (props.section.type !== 'text' || !props.section.content) return []
   return props.section.content
@@ -114,22 +115,16 @@ const imageParagraphs = computed(() => {
 
 const reportLines = computed(() => {
   if (props.section.type !== 'report' || !props.section.content) return []
-
-  // 拆段邏輯：以段首為切點（中文數字、阿拉伯數字等）
   const raw = props.section.content
-
-  // 在「一、」「二、」「三、」前加換行
   const withBreaks = raw
     .replace(/([^\n]|^)([一二三四五六七八九十])、/g, '\n$2、')
-    .replace(/([^\n]|^)([０-９\d]{1,2})、/g, '\n$2、') // 全形數字也切
-    .replace(/([^\n]|^)[①-⑩]/g, '\n$&') // 若未來用圈號數字也切
-
+    .replace(/([^\n]|^)([０-９\d]{1,2})、/g, '\n$2、')
+    .replace(/([^\n]|^)[①-⑩]/g, '\n$&')
   return withBreaks
     .split('\n')
     .map(line => line.trim())
     .filter(line => line.length > 0)
 })
-
 
 function getReportLineClass(line: string) {
   if (/^\(\d+\)/.test(line)) return 'ml-8'
