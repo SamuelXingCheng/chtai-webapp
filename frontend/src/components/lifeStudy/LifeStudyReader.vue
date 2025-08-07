@@ -49,12 +49,13 @@
     <!-- ✅ 內文區塊 -->
     <main
     class="w-full prose max-w-none space-y-6"
-    :style="{ fontSize: fontSize + 'px' }"
+    
     >
     <section
     v-for="day in allDays"
     :key="day.day"
-    class="border-b pb-6 rounded overflow-hidden bg-white shadow"
+    :id="`day-${day.day}`"
+    class="scroll-mt-[120px] border-b pb-6 rounded overflow-hidden bg-white shadow"
     >
 
     <h2
@@ -66,12 +67,14 @@
     <div class="p-4 space-y-3">
         <div
         class="text-black whitespace-pre-line leading-relaxed"
+        :style="{ fontSize: fontSize + 'px' }"
         v-if="!ui.isReadingFullscreen"
         >
         {{ day.content }}
         </div>
         <div
         class="text-[#eaeaea] whitespace-pre-line leading-relaxed"
+        :style="{ fontSize: fontSize + 'px' }"
         v-else
         >
         {{ day.content }}
