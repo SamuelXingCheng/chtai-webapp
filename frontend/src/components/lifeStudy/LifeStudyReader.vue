@@ -55,30 +55,28 @@
     v-for="day in allDays"
     :key="day.day"
     :id="`day-${day.day}`"
-    class="scroll-mt-[120px] border-b pb-6 rounded overflow-hidden bg-white shadow"
+    class="scroll-mt-[120px] border-b pb-1 rounded overflow-hidden bg-white shadow"
     >
 
     <h2
-    class="text-lg font-semibold text-white bg-amber-700 px-3 py-2 rounded-md shadow inline-block mt-3 ml-1"
+    class="text-lg font-semibold text-white bg-amber-700 px-3 py-2 rounded-md shadow inline-block mt-3 ml-3"
     >
     第{{ day.day }}天｜{{ day.label }}｜{{ day.verse }}
     </h2>
 
-    <div class="p-4 space-y-3">
-        <div
-        class="text-black whitespace-pre-line leading-relaxed"
-        :style="{ fontSize: fontSize + 'px' }"
-        v-if="!ui.isReadingFullscreen"
+    <div class="px-2 py-0.5 space-y-1">
+        <p
+            v-for="(para, i) in getParagraphs(day.content)"
+            :key="i"
+            :class="[
+            'leading-relaxed whitespace-pre-line rounded-md px-2 py-1.5 indent-8 text-justify mt-0.5',
+            i % 2 === 1 ? 'bg-[#B3884E]/50' : '',
+            ui.isReadingFullscreen ? 'text-[#eaeaea]' : 'text-black'
+            ]"
+            :style="{ fontSize: fontSize + 'px' }"
         >
-        {{ day.content }}
-        </div>
-        <div
-        class="text-[#eaeaea] whitespace-pre-line leading-relaxed"
-        :style="{ fontSize: fontSize + 'px' }"
-        v-else
-        >
-        {{ day.content }}
-        </div>
+            {{ para }}
+        </p>
     </div>
     </section>
     </main>
@@ -115,6 +113,13 @@ onMounted(async () => {
     console.error('讀取生命讀經資料失敗:', err)
   }
 })
+
+function getParagraphs(content: string): string[] {
+  return content
+    .split('\n')
+    .map(p => p.trim())
+    .filter(p => p.length > 0)
+}
 
 function increaseFontSize() {
   fontSize.value = Math.min(fontSize.value + 4, 32)
