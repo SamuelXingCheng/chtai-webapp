@@ -4,18 +4,24 @@
     <aside class="fixed top-[120px] right-6 w-[200px] space-y-3 text-sm text-gray-800">
     <div v-for="(item, index) in navItems" :key="index">
         <div
-        v-if="item.type === 'title'"
-        @click="scrollToCategory(item.key)"
-        class="text-xs font-bold text-amber-700 mt-4 mb-1 cursor-pointer hover:text-amber-500"
+          v-if="item.type === 'title'"
+          @click="scrollToCategory(item.key)"
+          :class="[
+            'text-6xs font-bold mt-4 mb-1 cursor-pointer hover:text-amber-500',
+            immersive ? 'text-[#C19960]' : 'text-amber-700'
+          ]"
         >
-        {{ item.label }}
+          {{ item.label }}
         </div>
         <div
-        v-else-if="item.type === 'link'"
-        @click="scrollToSection(item.target)"
-        class="cursor-pointer hover:text-amber-700 mb-1"
+          v-else-if="item.type === 'link'"
+          @click="scrollToSection(item.target)"
+          :class="[
+            'cursor-pointer hover:text-amber-400 mb-1',
+            immersive ? 'text-white/90' : 'text-gray-800'
+          ]"
         >
-        {{ item.label }}
+          {{ item.label }}
         </div>
     </div>
     </aside>
@@ -25,7 +31,10 @@
 <script setup lang="ts">
 import { ref, computed, onMounted, onBeforeUnmount } from 'vue'
 
-const props = defineProps<{ sections: { title: string }[] }>()
+const props = defineProps<{ 
+  sections: { title: string }[] 
+  immersive?: boolean
+}>()
 
 const activeIndex = ref(0)
 const isAtBottom = ref(false)

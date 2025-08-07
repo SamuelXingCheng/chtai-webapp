@@ -88,7 +88,7 @@
 
     <!-- JSON 週訊內容區塊，包含快速跳轉導覽 -->
     <div class="relative">
-      <WeeklyAnchorNav v-if="!immersive" :sections="weeklyData.sections" />
+      <WeeklyAnchorNav v-if="!immersive" :sections="weeklyData.sections" :immersive="false" />
 
       <div
         class="prose max-w-none rounded-xl p-6 transition-all duration-300"
@@ -140,7 +140,7 @@
           </button>
         </div>
         <!-- 🔗 導覽內容 -->
-        <WeeklyAnchorNav :sections="weeklyData.sections" />
+        <WeeklyAnchorNav :sections="weeklyData.sections" :immersive="true" />
       </aside>
     </transition>
   </Teleport>
