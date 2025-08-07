@@ -10,13 +10,12 @@
   >
     <!-- 標題區塊：沉浸模式時隱藏 -->
     <div v-if="!immersive" class="space-y-1">
-      <h1 class="text-3xl font-bold text-gray-800">週訊閱讀</h1>
-      <div v-if="weeklyData.title" class="text-blue-600 font-semibold">
-        週訊：{{ weeklyData.title }}
+      <h1 class="text-3xl font-bold text-gray-800">台中市召會週訊</h1>
+      <div v-if="weeklyData.title" class="text-3xl text-blue-600 font-semibold">
+        {{ weeklyData.title }}
       </div>
     </div>
 
-    <!-- 替換 WeeklyReader.vue 中這一段 -->
     <div
       class="sticky top-[75px] z-30 bg-beige"
       v-if="!immersive"
