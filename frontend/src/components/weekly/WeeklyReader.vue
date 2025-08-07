@@ -88,7 +88,7 @@
 
     <!-- JSON 週訊內容區塊，包含快速跳轉導覽 -->
     <div class="relative">
-      <WeeklyAnchorNav :sections="weeklyData.sections" />
+      <WeeklyAnchorNav v-if="!immersive" :sections="weeklyData.sections" />
 
       <div
         class="prose max-w-none rounded-xl p-6 transition-all duration-300"
@@ -111,6 +111,40 @@
     <MobileFloatingTOC :sections="weeklyData.sections" />
 
   </div>
+  <!-- ✅ 沉浸模式下浮動導覽按鈕 -->
+  <button
+    v-if="immersive"
+    class="fixed bottom-6 right-6 z-50 flex items-center gap-2 bg-[#C19960] text-white px-4 py-2 rounded-lg shadow-lg hover:bg-[#ddb574] transition"
+    @click="showSidebar = true"
+    title="打開導覽"
+  >
+    <!-- 導覽 Icon（漢堡條） -->
+    <svg class="w-5 h-5" fill="none" stroke="white" stroke-width="2" viewBox="0 0 24 24">
+    <path d="M4 6h16M4 12h16M4 18h16" />
+  </svg>
+    <span class="font-semibold text-sm">導覽</span>
+  </button>
+
+
+  <!-- ✅ 側邊導覽欄（Teleport 到 body） -->
+  <Teleport to="body">
+    <transition name="slide">
+      <aside
+        v-if="immersive && showSidebar"
+        class="fixed top-0 right-0 w-[280px] h-full bg-[#1e1e1e] text-white z-50 p-4 shadow-xl overflow-y-auto"
+      >
+        <div class="flex justify-between items-center mb-4">
+          <h2 class="text-lg font-semibold">快速導覽</h2>
+          <button @click="showSidebar = false" class="text-white text-2xl font-bold hover:text-gray-300">
+            ✕
+          </button>
+        </div>
+        <!-- 🔗 導覽內容 -->
+        <WeeklyAnchorNav :sections="weeklyData.sections" />
+      </aside>
+    </transition>
+  </Teleport>
+
 </template>
 
 <script setup lang="ts">
@@ -129,6 +163,8 @@ const immersive = computed({
   get: () => ui.isReadingFullscreen,
   set: (val) => (ui.isReadingFullscreen = val)
 })
+
+const showSidebar = ref(false)
 
 function increaseFontSize() {
   fontSize.value = Math.min(fontSize.value + 4, 32)
@@ -212,4 +248,13 @@ function selectMessage(msg: any) {
 .prose.prose-invert strong {
   color: #f5f5f5;
 }
+
+/* 側邊欄滑出效果 */
+.slide-enter-active, .slide-leave-active {
+  transition: transform 0.3s ease;
+}
+.slide-enter-from, .slide-leave-to {
+  transform: translateX(100%);
+}
+
 </style>
