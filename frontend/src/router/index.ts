@@ -9,6 +9,7 @@ import Profile from '../views/Profile.vue'
 import RegisterView from '../views/RegisterView.vue'
 import RegisterFormView from '../views/RegisterFormView.vue'
 import WeeklyView from '../views/WeeklyView.vue'
+import LifeStudyReader from '../components/lifeStudy/LifeStudyReader.vue'
 
 const routes = [
   {
@@ -55,6 +56,11 @@ const routes = [
     name: 'Weekly', 
     component: WeeklyView 
   },
+  {
+    path: '/life-study',
+    name: 'LifeStudy',
+    component: LifeStudyReader
+  }
 ]
 
 const router = createRouter({
