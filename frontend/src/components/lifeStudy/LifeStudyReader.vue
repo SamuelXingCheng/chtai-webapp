@@ -64,7 +64,7 @@
     第{{ day.day }}天｜{{ day.label }}｜{{ day.verse }}
     </h2>
 
-    <div class="px-2 py-0.5 space-y-1">
+    <div class="px-5 py-0.5 space-y-1">
         <p
             v-for="(para, i) in getParagraphs(day.content)"
             :key="i"
@@ -98,21 +98,64 @@ const allDays = ref<any[]>([])
 onMounted(async () => {
   try {
     const [res1, res2] = await Promise.all([
-      fetch('/newsite/data/life-study/ls_eph_005.json'),
-      fetch('/newsite/data/life-study/ls_eph_006.json')
+      fetch('/newsite/data/life-study/life_eph_001.json'),
+      fetch('/newsite/data/life-study/life_eph_002.json')
     ])
     if (!res1.ok || !res2.ok) {
       console.error('⚠️ 無法載入生命讀經 JSON:', res1.status, res2.status)
       return
     }
-    data1.value = await res1.json()
-    data2.value = await res2.json()
-    mergedTitle.value = `${data1.value.title} ＋ ${data2.value.title}`
-    allDays.value = [...data1.value.days, ...data2.value.days]
+    const raw1 = await res1.json()
+    const raw2 = await res2.json()
+
+    const doc1 = normalizeDoc(raw1)
+    const doc2 = normalizeDoc(raw2)
+
+    mergedTitle.value = `${doc1.title} ＋ ${doc2.title}`
+    allDays.value = [...doc1.days, ...doc2.days]  // ← 結構維持 {day,label,verse,content}
   } catch (err) {
     console.error('讀取生命讀經資料失敗:', err)
   }
 })
+
+function normalizeDoc(doc: any) {
+  // 預防是舊格式或 processed 格式
+  const days = Array.isArray(doc?.days) ? doc.days : []
+
+  const normDays = days.map((d: any) => {
+    // 優先使用 processed 的 text；沒有就從 paragraphs 拼回來；再不行用 content/contentRaw
+    const contentFromParagraphs = Array.isArray(d.paragraphs)
+      ? d.paragraphs.map((p: any) => {
+          if (!p || typeof p.text !== 'string') return ''
+          if (p.level === 1) return `${p.marker}、${p.text}`
+          if (p.level === 2) return `• ${p.marker}、${p.text}`
+          if (p.level === 3) return `- ${p.marker}. ${p.text}`
+          return p.text
+        }).join('\n')
+      : ''
+
+    const content: string =
+      (typeof d.text === 'string' && d.text.trim().length ? d.text : '') ||
+      (contentFromParagraphs && contentFromParagraphs.trim().length ? contentFromParagraphs : '') ||
+      (typeof d.content === 'string' ? d.content : '') ||
+      (typeof d.contentRaw === 'string' ? d.contentRaw : '')
+
+    return {
+      day: Number(d.day) || 0,
+      label: d.label || '',         // 你的模板會顯示 label，沒有就給空字串
+      verse: d.verse || '',
+      content
+    }
+  })
+
+  // 依 day 排序，避免合併後順序亂掉
+  normDays.sort((a: any, b: any) => a.day - b.day)
+
+  return {
+    title: doc?.title || '',
+    days: normDays
+  }
+}
 
 function getParagraphs(content: string): string[] {
   return content
