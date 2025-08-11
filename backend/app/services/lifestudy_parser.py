@@ -11,17 +11,15 @@ FORMAT_LEVEL3 = "    - {marker}. {text}"  # 小點：    - 1. ...
 # =================================
 
 # 支援的綱目樣式（含常見括號、標點變體）
-# 大點：壹貳參(參/参)肆伍陸柒捌玖拾
+# 大點：壹貳參(参)肆伍陸柒捌玖拾
 RE_L1 = re.compile(
     r"""^\s*
         [\(\（\[\{]?
         (?P<mk>壹|貳|參|参|肆|伍|陸|柒|捌|玖|拾)
-        [、．\.:\)）]?
-        \s*
+        (?:[、．\.\:：\)）]|[\s\u3000\u00A0]+)     # ← 必須有分隔符或至少一空白
         (?P<txt>.+?)
         \s*$
-    """,
-    re.X
+    """, re.X
 )
 
 # 中點：一二三四五六七八九十
@@ -29,12 +27,10 @@ RE_L2 = re.compile(
     r"""^\s*
         [\(\（\[\{]?
         (?P<mk>一|二|三|四|五|六|七|八|九|十)
-        [、．\.:\)）]?
-        \s*
+        (?:[、．\.\:：\)）]|[\s\u3000\u00A0]+)     # ← 必須有分隔符或至少一空白
         (?P<txt>.+?)
         \s*$
-    """,
-    re.X
+    """, re.X
 )
 
 # 小點：阿拉伯數字 1~99
@@ -42,12 +38,10 @@ RE_L3 = re.compile(
     r"""^\s*
         [\(\（\[\{]?
         (?P<mk>\d{1,2})
-        [、．\.:\)）]?
-        \s*
+        (?:[、．\.\:：\)）]|[\s\u3000\u00A0]+)     # ← 必須有分隔符或至少一空白
         (?P<txt>.+?)
         \s*$
-    """,
-    re.X
+    """, re.X
 )
 
 def _normalize_text(s: str) -> str:
@@ -119,31 +113,53 @@ def _detect_level(block: str) -> Tuple[int, str, str]:
     return 0, "", block
 def _split_heading_body(level: int, txt: str):
     """
-    把像「身體  以弗所書的主題是召會。」拆成
-    title="身體", body="以弗所書的主題是召會。」
+    把像「身體  以弗所書的主題是召會。」拆成 title/body。
+    但若是「主題─召會」這種「破折號 + 短詞」的情況，視為整個都是標題。
     """
     if level not in (1, 2, 3):
-        return txt, ""
+        return txt.strip(), ""
 
     s = txt.strip()
 
-    # 1) 破折號（─ — -）
+    def looks_like_short_title(word: str) -> bool:
+        # 右側若很短、且不像句子（無終止標點、無明顯空白/多詞），就當作標題片語
+        w = word.strip()
+        if len(w) == 0:
+            return False
+        if len(w) <= 12 and not re.search(r"[。？！；;]", w) and not re.search(r"\s", w):
+            return True
+        return False
+
+    # 1) 破折號（─ — -）預拆
     m = re.match(r'^(?P<title>[^，。；：:、\s]{1,30})\s*[─—-]\s*(?P<body>.+)$', s)
     if m:
-        return m.group('title').strip(), m.group('body').strip()
+        title, body = m.group('title').strip(), m.group('body').strip()
+        # 回退：若右側像「召會」「引言」這類短詞，保留整段為標題
+        if looks_like_short_title(body):
+            return s, ""
+        return title, body
 
-    # 2) 冒號（： :）
+    # 2) 冒號（： :）預拆
     m = re.match(r'^(?P<title>[^，。；：:、\s]{1,30})\s*[：:]\s*(?P<body>.+)$', s)
     if m:
-        return m.group('title').strip(), m.group('body').strip()
+        title, body = m.group('title').strip(), m.group('body').strip()
+        # 冒號也做同樣回退，避免「篇題：召會」被錯拆
+        if looks_like_short_title(body):
+            return s, ""
+        return title, body
 
-    # 3) 任意空白（含全形空白/不換行空白/Tab）
+    # 3) 單一空白分隔（全/半形），保留原規則
     m = re.match(r'^(?P<title>[^\s\u3000\u00A0]{1,30})[\s\u3000\u00A0]+(?P<body>.+)$', s)
     if m:
-        return m.group('title').strip(), m.group('body').strip()
+        title, body = m.group('title').strip(), m.group('body').strip()
+        # 若右側是短詞，也回退為整段標題
+        if looks_like_short_title(body):
+            return s, ""
+        return title, body
 
     # 拆不到就整段視為標題
     return s, ""
+
 
 def parse_lifestudy_to_paragraphs(text: str) -> List[Dict[str, Any]]:
     """
