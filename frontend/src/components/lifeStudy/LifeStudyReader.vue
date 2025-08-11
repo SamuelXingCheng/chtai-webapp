@@ -66,17 +66,20 @@
 
     <div class="px-5 py-0.5 space-y-1">
         <p
-            v-for="(para, i) in getParagraphs(day.content)"
-            :key="i"
-            :class="[
-            'leading-relaxed whitespace-pre-line rounded-md px-2 py-1.5 indent-8 text-justify mt-0.5',
-            i % 2 === 1 ? 'bg-[#B3884E]/50' : '',
-            ui.isReadingFullscreen ? 'text-[#eaeaea]' : 'text-black'
-            ]"
-            :style="{ fontSize: fontSize + 'px' }"
-        >
-            {{ para }}
-        </p>
+        v-for="(para, i) in day.display"
+        :key="i"
+        :class="[
+          'leading-relaxed whitespace-pre-line rounded-md px-2 py-1.5 text-justify mt-0.5',
+          // 綱目：無底色、可去首行縮排並加粗
+          para.isHeading ? 'font-semibold indent-0' : 'indent-8',
+          // 正文才做隔段底色：用 bodyIndex（只數正文）
+          (!para.isHeading && para.bodyIndex % 2 === 1) ? 'bg-[#B3884E]/50' : '',
+          ui.isReadingFullscreen ? 'text-[#eaeaea]' : 'text-black'
+        ]"
+        :style="{ fontSize: fontSize + 'px' }"
+      >
+        {{ para.text }}
+      </p>
     </div>
     </section>
     </main>
@@ -119,36 +122,59 @@ onMounted(async () => {
 })
 
 function normalizeDoc(doc: any) {
-  // 預防是舊格式或 processed 格式
   const days = Array.isArray(doc?.days) ? doc.days : []
 
   const normDays = days.map((d: any) => {
-    // 優先使用 processed 的 text；沒有就從 paragraphs 拼回來；再不行用 content/contentRaw
-    const contentFromParagraphs = Array.isArray(d.paragraphs)
-      ? d.paragraphs.map((p: any) => {
-          if (!p || typeof p.text !== 'string') return ''
-          if (p.level === 1) return `${p.marker}、${p.text}`
-          if (p.level === 2) return `• ${p.marker}、${p.text}`
-          if (p.level === 3) return `- ${p.marker}. ${p.text}`
-          return p.text
-        }).join('\n')
-      : ''
+    // 先決定來源：優先 paragraphs；否則回退到 text/contentRaw 拆行
+    const parasFromJson = Array.isArray(d.paragraphs) ? d.paragraphs : null
 
-    const content: string =
-      (typeof d.text === 'string' && d.text.trim().length ? d.text : '') ||
-      (contentFromParagraphs && contentFromParagraphs.trim().length ? contentFromParagraphs : '') ||
-      (typeof d.content === 'string' ? d.content : '') ||
-      (typeof d.contentRaw === 'string' ? d.contentRaw : '')
+    let display: Array<{ text: string; isHeading: boolean; bodyIndex: number }> = []
+    let bodyIndex = 0
+
+    if (parasFromJson) {
+      for (const p of parasFromJson) {
+        if (!p || typeof p.text !== 'string') continue
+        const isHeading = [1, 2, 3].includes(Number(p.level))
+        // 你原本的顯示格式（可依喜好調）
+        const text =
+          isHeading
+            ? (p.level === 1 ? `${p.marker}、${p.text}`
+              : p.level === 2 ? `• ${p.marker}、${p.text}`
+              : `- ${p.marker}. ${p.text}`)
+            : p.text
+
+        display.push({
+          text,
+          isHeading,
+          bodyIndex: isHeading ? -1 : bodyIndex++
+        })
+      }
+    } else {
+      // 回退：用字串拆行，簡單用正則判斷是否綱目
+      const content = (d.text || d.content || d.contentRaw || '').toString()
+      for (const line of content.split('\n').map(s => s.trim()).filter(Boolean)) {
+        const isHeading = /^[壹貳參参肆伍陸柒捌玖拾一二三四五六七八九十\d]+[、．.]/.test(line)
+        display.push({
+          text: line,
+          isHeading,
+          bodyIndex: isHeading ? -1 : bodyIndex++
+        })
+      }
+    }
 
     return {
       day: Number(d.day) || 0,
-      label: d.label || '',         // 你的模板會顯示 label，沒有就給空字串
+      label: d.label || '',
       verse: d.verse || '',
-      content
+      // 保留原有 content（供搜尋/複製），但渲染改用 display
+      content: (typeof d.text === 'string' && d.text.trim()) ? d.text
+        : (typeof d.content === 'string' && d.content.trim()) ? d.content
+        : (typeof d.contentRaw === 'string') ? d.contentRaw
+        : '',
+      display
     }
   })
 
-  // 依 day 排序，避免合併後順序亂掉
   normDays.sort((a: any, b: any) => a.day - b.day)
 
   return {
@@ -156,6 +182,7 @@ function normalizeDoc(doc: any) {
     days: normDays
   }
 }
+
 
 function getParagraphs(content: string): string[] {
   return content
