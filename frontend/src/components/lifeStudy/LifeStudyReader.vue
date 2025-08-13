@@ -41,25 +41,23 @@
         <div
           :class="[
             immersive
-              ? 'flex w-full items-center justify-between gap-3'   // ← 多了 w-full
+              ? 'flex flex-wrap items-center gap-3 sm:flex-nowrap'
               : 'flex flex-wrap justify-between items-center gap-3'
           ]"
         >
           <div
             :class="[
               'text-sm whitespace-nowrap space-x-2',
-              immersive ? 'flex-1 min-w-0 overflow-x-auto pr-4' : 'overflow-x-auto'  // ← 多了 pr-4
+              immersive ? 'order-1 w-full min-w-0 overflow-x-auto pr-4' : 'overflow-x-auto'
             ]"
           >
             <span
               v-for="day in allDays"
               :key="day.day"
-              :class="[
-                'inline-block px-2 py-1 rounded-full transition shadow-sm cursor-pointer border',
-                immersive
-                  ? 'border-white/15 text-[#C19960] bg-white/5 hover:bg-white/10'
-                  : 'border-amber-700 text-amber-700 bg-white hover:bg-amber-100'
-              ]"
+              class="shrink-0 inline-block px-2 py-1 rounded-full transition shadow-sm cursor-pointer border"
+              :class="immersive
+                ? 'border-white/15 text-[#C19960] bg-white/5 hover:bg-white/10'
+                : 'border-amber-700 text-amber-700 bg-white hover:bg-amber-100'"
               @click="scrollTo(day.day)"
             >第{{ day.day }}天</span>
           </div>
@@ -67,28 +65,25 @@
           <div
             :class="[
               'flex items-center gap-2',
-              immersive ? 'ml-auto flex-nowrap' : 'flex-wrap'
+              immersive ? 'order-2 w-full sm:w-auto sm:ml-auto flex-wrap sm:flex-nowrap'
+                        : 'flex-wrap'
             ]"
           >
             <span :class="[immersive ? 'text-[#C19960]' : 'text-gray-600', 'text-sm']">字體大小：</span>
-            <button
-              @click="decreaseFontSize"
-              :class="[
-                'px-2 py-1 text-sm rounded border cursor-pointer transition',
-                immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10' : 'bg-white hover:bg-gray-100'
-              ]">A-</button>
-            <button
-              @click="increaseFontSize"
-              :class="[
-                'px-2 py-1 text-sm rounded border cursor-pointer transition',
-                immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10' : 'bg-white hover:bg-gray-100'
-              ]">A+</button>
-            <button
-              @click="toggleFullscreen"
-              :class="[
-                'px-3 py-1 text-sm rounded border cursor-pointer transition',
-                immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10' : 'bg-white hover:bg-gray-100'
-              ]">{{ immersive ? '返回一般模式' : '沉浸閱讀' }}</button>
+            <button @click="decreaseFontSize"
+              :class="['px-2 py-1 text-sm rounded border transition',
+                      immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
+                                : 'bg-white hover:bg-gray-100']">A-</button>
+            <button @click="increaseFontSize"
+              :class="['px-2 py-1 text-sm rounded border transition',
+                      immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
+                                : 'bg-white hover:bg-gray-100']">A+</button>
+            <button @click="toggleFullscreen"
+              :class="['px-3 py-1 text-sm rounded border transition',
+                      immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
+                                : 'bg-white hover:bg-gray-100']">
+              {{ immersive ? '返回一般模式' : '沉浸閱讀' }}
+            </button>
           </div>
         </div>
       </div>
