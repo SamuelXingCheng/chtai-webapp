@@ -65,7 +65,7 @@
           <div
             :class="[
               'flex items-center gap-2',
-              immersive ? 'order-2 w-full sm:w-auto sm:ml-auto flex-wrap sm:flex-nowrap'
+              immersive ? 'order-2 w-full sm:w-auto sm:ml-auto flex-wrap sm:flex-nowrap whitespace-nowrap'
                         : 'flex-wrap'
             ]"
           >
