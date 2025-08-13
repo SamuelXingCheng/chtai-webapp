@@ -16,7 +16,7 @@
         // 一般：維持 sticky
         // 沉浸：改成 relative，和內容在同一平面
         immersive
-          ? 'relative px-6 py-2 flex flex-wrap items-center justify-between gap-4 bg-[#262626]'
+          ? 'relative px-6 py-2 flex flex-wrap items-center gap-4 bg-[#262626]'
           : 'sticky z-40 px-6 py-2 flex flex-wrap items-center justify-between gap-4 bg-inherit'
       ]"
       :style="immersive ? {} : { top: headerTopPx }"
@@ -32,19 +32,21 @@
       ref="navRow"
       :class="[
         immersive
-          ? 'relative py-2 bg-[#262626]'                                      /* 融入頁面，不漂浮 */
-          : 'sticky z-30 py-2 bg-beige border-b border-neutral-200'            /* 原樣 */
+          ? 'relative py-2 bg-[#262626]'                       /* 融入頁面，不漂浮 */
+          : 'sticky z-30 py-2 bg-beige border-b border-neutral-200' /* 原樣 */
       ]"
       :style="immersive ? {} : { top: navTopPx }"
     >
-      <div :class="[immersive ? 'w-full px-6' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8']">
+      <!--沉浸不再加 px-6，改吃外層 scrollWrap 的 px-6；一般維持容器置中 -->
+      <div :class="[immersive ? 'w-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8']">
         <div
           :class="[
             immersive
-              ? 'flex flex-wrap items-center gap-3 sm:flex-nowrap'
-              : 'flex flex-wrap justify-between items-center gap-3'
+              ? 'flex flex-wrap items-center gap-3 sm:flex-nowrap'  // 沉浸無 justify-between
+              : 'flex flex-wrap justify-between items-center gap-3' // 一般維持
           ]"
         >
+          <!-- 天數列 -->
           <div
             :class="[
               'text-sm whitespace-nowrap space-x-2',
@@ -62,28 +64,40 @@
             >第{{ day.day }}天</span>
           </div>
 
+          <!-- 字體大小控制列-->
           <div
             :class="[
-              'flex items-center gap-2',
-              immersive ? 'order-2 w-full sm:w-auto sm:ml-auto flex-wrap sm:flex-nowrap whitespace-nowrap'
-                        : 'flex-wrap'
+              'order-2 w-full sm:w-auto self-start',
+              cardOffsetClass,                                       // 一般模式：ml-3；沉浸：不偏移
+              'sm:bg-transparent sm:border-0 sm:p-0 sm:mt-0',
+              immersive
+                ? 'bg-white/5 border border-white/10 rounded-xl p-2 mt-2'
+                : 'bg-white border border-neutral-200 rounded-xl p-2 mt-2'
             ]"
           >
-            <span :class="[immersive ? 'text-[#C19960]' : 'text-gray-600', 'text-sm']">字體大小：</span>
-            <button @click="decreaseFontSize"
-              :class="['px-2 py-1 text-sm rounded border transition',
-                      immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
-                                : 'bg-white hover:bg-gray-100']">A-</button>
-            <button @click="increaseFontSize"
-              :class="['px-2 py-1 text-sm rounded border transition',
-                      immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
-                                : 'bg-white hover:bg-gray-100']">A+</button>
-            <button @click="toggleFullscreen"
-              :class="['px-3 py-1 text-sm rounded border transition',
-                      immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
-                                : 'bg-white hover:bg-gray-100']">
-              {{ immersive ? '返回一般模式' : '沉浸閱讀' }}
-            </button>
+            <div class="flex items-center gap-2 flex-nowrap whitespace-nowrap">
+              <span :class="[immersive ? 'text-[#C19960]' : 'text-gray-600', 'text-sm']">字體大小：</span>
+
+              <button
+                @click="decreaseFontSize"
+                class="shrink-0 px-2 py-1 text-sm rounded border transition"
+                :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
+                                  : 'bg-white hover:bg-gray-100'">A-</button>
+
+              <button
+                @click="increaseFontSize"
+                class="shrink-0 px-2 py-1 text-sm rounded border transition"
+                :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
+                                  : 'bg-white hover:bg-gray-100'">A+</button>
+
+              <button
+                @click="toggleFullscreen"
+                class="shrink-0 px-3 py-1 text-sm rounded border transition"
+                :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
+                                  : 'bg-white hover:bg-gray-100'">
+                {{ immersive ? '返回一般模式' : '沉浸閱讀' }}
+              </button>
+            </div>
           </div>
         </div>
       </div>
@@ -103,24 +117,25 @@
         :id="`day-${day.day}`"
         :class="[
           immersive
-            ? 'border-b border-white/10'                                   /* 滿版分節線 */
-            : 'border-b pb-1 rounded overflow-hidden bg-white shadow'       /* 原樣卡片 */
+            ? 'border-b border-white/10'                             /* 滿版分節線 */
+            : 'border-b pb-1 rounded overflow-hidden bg-white shadow' /* 原樣卡片 */
         ]"
         :style="{ scrollMarginTop: baseOffsetPx }"
       >
-        <!-- h2：沈浸左側強調條（無 ml），一般維持琥珀膠囊 -->
+        <!-- h2：改用共用偏移（一般：ml-3；沉浸：0） -->
         <h2
           :ref="el => setH2Ref(idx, el)"
           :class="[
             immersive
               ? 'text-[#C19960] border-l-2 border-amber-400 text-lg font-semibold px-3 py-2 inline-flex items-center gap-2 mt-2'
-              : 'text-lg font-semibold text-white bg-amber-700 px-3 py-2 rounded-md shadow inline-block mt-3 ml-3'
+              : 'text-lg font-semibold text-white bg-amber-700 px-3 py-2 rounded-md shadow inline-block mt-3',
+            cardOffsetClass
           ]"
         >
           第{{ day.day }}天｜{{ day.label }}｜{{ day.verse }}
         </h2>
 
-        <!-- 段落：保留交錯底色；沈浸下降低透明度 -->
+        <!-- 段落 -->
         <div :class="['px-5', immersive ? 'py-2' : 'py-0.5', 'space-y-1']">
           <p
             v-for="(para, i) in day.display"
@@ -140,6 +155,7 @@
         </div>
       </section>
     </main>
+
   </div>
 </template>
 
