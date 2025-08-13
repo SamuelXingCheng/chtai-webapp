@@ -20,7 +20,7 @@
       class="sticky top-[75px] z-30 bg-beige"
       v-if="!immersive"
     >
-        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+        <div class="w-full py-2 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
 
         <!-- 右側：字體大小控制 + 沉浸閱讀 -->
         <div class="flex items-center gap-4">
@@ -54,7 +54,7 @@
 
 
     <!-- 沉浸模式時：只顯示字體控制與切換按鈕 -->
-    <div class="flex gap-2 items-center" v-else>
+    <div class="px-4 sm:px-6 lg:px-8 flex gap-2 items-center" v-else>
       <span class="text-sm text-[#ccc]">字體大小：</span>
       <button
         @click="decreaseFontSize"
