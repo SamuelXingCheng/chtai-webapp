@@ -32,7 +32,7 @@
       ref="navRow"
       :class="[
         immersive
-          ? 'relative py-2 bg-[#262626]'                       /* 融入頁面，不漂浮 */
+          ? 'sticky top-[-2.5rem] z-30 py-2 bg-[#262626]'
           : 'sticky z-30 py-2 bg-beige border-b border-neutral-200' /* 原樣 */
       ]"
       :style="immersive ? {} : { top: navTopPx }"
