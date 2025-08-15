@@ -17,7 +17,7 @@
         // 沉浸：改成 relative，和內容在同一平面
         immersive
           ? 'relative px-6 py-2 flex flex-wrap items-center gap-4 bg-[#262626]'
-          : 'sticky z-40 px-6 py-2 flex flex-wrap items-center justify-between gap-4 bg-inherit'
+          : 'sticky z-40 px-6 py-1 flex flex-wrap items-center justify-between gap-4 bg-inherit'
       ]"
       :style="immersive ? {} : { top: headerTopPx }"
     >
@@ -27,81 +27,96 @@
       </h1>
     </div>
 
-    <!-- 導覽列：沈浸時改為同平面（非 sticky），一般保持 sticky -->
-    <div
-      ref="navRow"
-      :class="[
-        immersive
-          ? 'sticky top-[-2.5rem] z-30 py-2 bg-[#262626]'
-          : 'sticky z-30 py-2 bg-beige border-b border-neutral-200' /* 原樣 */
-      ]"
-      :style="immersive ? {} : { top: navTopPx }"
-    >
-      <!--沉浸不再加 px-6，改吃外層 scrollWrap 的 px-6；一般維持容器置中 -->
-      <div :class="[immersive ? 'w-full' : 'max-w-7xl mx-auto px-4 sm:px-6 lg:px-8']">
-        <div
-          :class="[
-            immersive
-              ? 'flex flex-wrap items-center gap-3 sm:flex-nowrap'  // 沉浸無 justify-between
-              : 'flex flex-wrap justify-between items-center gap-3' // 一般維持
-          ]"
-        >
-          <!-- 天數列 -->
-          <div
-            :class="[
-              'text-sm whitespace-nowrap space-x-2',
-              immersive ? 'order-1 w-full min-w-0 overflow-x-auto pr-4' : 'overflow-x-auto'
-            ]"
-          >
+    <!-- 導覽列 -->
+  <div
+    ref="navRow"
+    :class="[
+      immersive
+        ? 'sticky top-[-2.5rem] z-30 py-[2.5px] bg-[#262626]'
+        : 'sticky z-30 py-[3.5px] bg-beige border-b border-neutral-200'
+    ]"
+    :style="immersive ? {} : { top: navTopPx }"
+  >
+    <div :class="[immersive ? 'w-full' : 'max-w-7xl mx-auto px-4']">
+
+      <!-- 一列兩欄（桌面版同排，手機版左天數右齒輪） -->
+      <div class="flex items-center gap-2 relative sm:static sm:flex-nowrap sm:justify-between">
+
+        <!-- 左：天數列 -->
+        <div :class="[
+          'flex-1 min-w-0 overflow-x-auto scrollbar-hide',
+          immersive ? 'order-1' : 'order-1'
+        ]">
+          <div class="flex gap-2 w-max">
             <span
               v-for="day in allDays"
               :key="day.day"
-              class="shrink-0 inline-block px-2 py-1 rounded-full transition shadow-sm cursor-pointer border"
+              class="shrink-0 px-2 py-1 rounded-full transition shadow-sm cursor-pointer border"
               :class="immersive
                 ? 'border-white/15 text-[#C19960] bg-white/5 hover:bg-white/10'
                 : 'border-amber-700 text-amber-700 bg-white hover:bg-amber-100'"
               @click="scrollTo(day.day)"
-            >第{{ day.day }}天</span>
-          </div>
-
-          <!-- 字體大小控制列-->
-          <div
-            :class="[
-              'order-2 w-full sm:w-auto self-start',
-              cardOffsetClass,                                       // 一般模式：ml-3；沉浸：不偏移
-              'sm:bg-transparent sm:border-0 sm:p-0 sm:mt-0',
-              immersive
-                ? 'bg-white/5 border border-white/10 rounded-xl p-2 mt-2'
-                : 'bg-white border border-neutral-200 rounded-xl p-2 mt-2'
-            ]"
-          >
-            <div class="flex items-center gap-2 flex-nowrap whitespace-nowrap">
-              <span :class="[immersive ? 'text-[#C19960]' : 'text-gray-600', 'text-sm']">字體大小：</span>
-
-              <button
-                @click="decreaseFontSize"
-                class="shrink-0 px-2 py-1 text-sm rounded border transition"
-                :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
-                                  : 'bg-white hover:bg-gray-100'">A-</button>
-
-              <button
-                @click="increaseFontSize"
-                class="shrink-0 px-2 py-1 text-sm rounded border transition"
-                :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
-                                  : 'bg-white hover:bg-gray-100'">A+</button>
-
-              <button
-                @click="toggleFullscreen"
-                class="shrink-0 px-3 py-1 text-sm rounded border transition"
-                :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960] hover:bg-white/10'
-                                  : 'bg-white hover:bg-gray-100'">
-                {{ immersive ? '返回一般模式' : '沉浸閱讀' }}
-              </button>
-            </div>
+            >
+              第{{ day.day }}天
+            </span>
           </div>
         </div>
+
+        <!-- 右：手機版齒輪 -->
+        <div class="flex-shrink-0 sm:hidden">
+          <button
+            @click="showFontMenu = !showFontMenu"
+            class="p-2 rounded-full border transition hover:bg-white/10"
+            :class="immersive ? 'border-white/15 text-[#C19960]' : 'border-neutral-300 text-gray-600'"
+            aria-label="閱讀設定"
+            title="閱讀設定"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none"
+                viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+              <path stroke-linecap="round" stroke-linejoin="round"
+                    d="M4 6h12M4 12h12M4 18h12M18 6h.01M18 12h.01M18 18h.01"/>
+            </svg>
+          </button>
+        </div>
+
+        <!-- 右：桌面版字體控制列 -->
+        <div
+          class="hidden sm:flex items-center gap-2 flex-nowrap whitespace-nowrap"
+          :class="[
+            cardOffsetClass,
+            immersive ? 'bg-white/5 border border-white/10 rounded-xl p-2'
+                      : 'bg-white border border-neutral-200 rounded-xl p-2'
+          ]"
+        >
+          <span :class="[immersive ? 'text-[#C19960]' : 'text-gray-600', 'text-sm']">字體大小：</span>
+          <button @click="decreaseFontSize" class="shrink-0 px-2 py-1 text-sm rounded border"
+            :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960]' : 'bg-white hover:bg-gray-100'">A-</button>
+          <button @click="increaseFontSize" class="shrink-0 px-2 py-1 text-sm rounded border"
+            :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960]' : 'bg-white hover:bg-gray-100'">A+</button>
+          <button @click="toggleFullscreen" class="shrink-0 px-3 py-1 text-sm rounded border"
+            :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960]' : 'bg-white hover:bg-gray-100'">
+            {{ immersive ? '返回一般模式' : '沉浸閱讀' }}
+          </button>
+        </div>
       </div>
+
+      <!-- 手機版展開的字體控制列 -->
+      <div v-if="showFontMenu" class="mt-2 flex flex-wrap gap-2 sm:hidden">
+        <span :class="[immersive ? 'text-[#C19960]' : 'text-gray-600', 'text-sm']">字體大小：</span>
+        <button @click="decreaseFontSize" class="shrink-0 px-2 py-1 text-sm rounded border"
+          :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960]' : 'bg-white hover:bg-gray-100'">A-</button>
+        <button @click="increaseFontSize" class="shrink-0 px-2 py-1 text-sm rounded border"
+          :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960]' : 'bg-white hover:bg-gray-100'">A+</button>
+        <button @click="toggleFullscreen" class="shrink-0 px-3 py-1 text-sm rounded border"
+          :class="immersive ? 'bg-white/5 border-white/15 text-[#C19960]' : 'bg-white hover:bg-gray-100'">
+          {{ immersive ? '返回一般模式' : '沉浸閱讀' }}
+        </button>
+      </div>
+
     </div>
+  </div>
+
+
 
     <!-- 內容：沈浸=滿版（max-w-none）+ 反色，並把外層 space 的間距吃掉讓它貼合導覽列 -->
     <main
@@ -165,6 +180,8 @@ import { useUIStore } from '../../stores/ui'
 const ui = useUIStore()
 const scrollWrap = ref<HTMLElement | null>(null)
 
+const showFontMenu = ref(false)
+
 /* 沉浸狀態 */
 const immersive = computed(() => ui.isReadingFullscreen)
 
@@ -222,7 +239,7 @@ onMounted(() => {
 onBeforeUnmount(() => headerRO?.disconnect())
 
 /* 導覽列頂端：一般模式才需要把 navH 算進 baseOffset */
-const navTopPx = computed(() => `${headerOffset.value + titleH.value}px`)
+const navTopPx = computed(() => `${headerOffset.value + titleH.value-2}px`)
 const baseOffset = computed(() =>
   (immersive.value ? headerOffset.value : headerOffset.value + titleH.value + navH.value)
 )
