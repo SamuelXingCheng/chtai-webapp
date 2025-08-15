@@ -17,14 +17,20 @@
         // 沉浸：改成 relative，和內容在同一平面
         immersive
           ? 'relative px-6 py-2 flex flex-wrap items-center gap-4 bg-[#262626]'
-          : 'sticky z-40 px-6 py-1 flex flex-wrap items-center justify-between gap-4 bg-inherit'
+          : 'sticky z-40 px-6 py-[0.7px] flex flex-wrap items-center justify-between gap-4 bg-inherit'
       ]"
       :style="immersive ? {} : { top: headerTopPx }"
     >
-      <h1 :style="{ fontSize }"
-          :class="[immersive ? 'text-[#C19960]' : 'text-blue-700', 'font-bold whitespace-normal sm:whitespace-nowrap']">
+      <h1
+        :class="[
+          immersive ? 'text-[#C19960]' : 'text-blue-700',
+          'font-bold whitespace-normal',
+          'text-lg sm:text-xl md:text-2xl lg:text-3xl' // 手機小、桌面大
+        ]"
+      >
         {{ mergedTitle || '生命讀經載入中…' }}
       </h1>
+
     </div>
 
     <!-- 導覽列 -->
