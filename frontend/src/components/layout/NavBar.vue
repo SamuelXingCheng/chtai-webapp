@@ -8,7 +8,7 @@
         class="flex items-center gap-2 hover:opacity-80 transition"
       >
         <img src="/logo.png" alt="Logo" class="h-8 w-auto" />
-        <span class="text-xl font-bold text-gray-800">台中市召會</span>
+        <span class="text-xl font-bold text-gray-800 whitespace-nowrap">台中市召會</span>
       </router-link>
 
       <!-- 導覽選單（桌面版） -->
