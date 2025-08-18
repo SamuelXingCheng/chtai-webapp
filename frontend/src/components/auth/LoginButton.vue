@@ -14,10 +14,9 @@
     <!-- 已登入時顯示使用者資訊與登出按鈕 -->
     <div v-else class="flex items-center gap-3 text-gray-700">
       <img
-        v-if="currentUser.photoURL"
-        :src="currentUser.photoURL"
+        :src="currentUser?.photoURL || '/default-avatar.png'"
         alt="頭像"
-        class="w-6 h-6 rounded-full"
+        class="w-6 h-6 rounded-full object-cover"
       />
       <span class="text-sm font-medium">{{ currentUser.displayName }}</span>
         <button
