@@ -22,6 +22,12 @@
     >
       {{ section.title }}
     </h2>
+    <p
+      v-if="section.subtitle"
+      class="text-lg text-gray-600 dark:text-gray-400"
+    >
+      {{ section.subtitle }}
+    </p>
 
     <!-- 一般段落：逐行切段並交錯底色 -->
     <div v-if="section.type === 'text'" class="space-y-2">
