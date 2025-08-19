@@ -29,19 +29,62 @@
       {{ section.subtitle }}
     </p>
 
-    <!-- 一般段落：逐行切段並交錯底色 -->
+    <!-- 一般段落 -->
     <div v-if="section.type === 'text'" class="space-y-2">
-      <p
-        v-for="(para, i) in paragraphs"
-        :key="i"
-        :class="[
-          'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
-          i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
-        ]"
+
+      <!-- ✅ 特殊：家聚會牧養材料，含 subsections -->
+      <div v-if="section.sections" class="space-y-6">
+        <div v-for="(sub, i) in section.sections" :key="i" class="space-y-2">
+          <h3 v-if="sub.heading" class="text-xl font-semibold text-amber-700">
+            {{ sub.heading }}
+          </h3>
+
+          <!-- 段落：只對非空行加 li -->
+          <ul class="list-disc pl-6 space-y-1">
+            <li
+              v-for="(line, j) in sub.paragraphs.flatMap(p => p.split('\n')).filter(l => l.trim() !== '')"
+              :key="j"
+              class="leading-relaxed text-justify"
+            >
+              {{ line }}
+            </li>
+          </ul>
+        </div>
+      </div>
+
+
+      <!-- ✅ 特殊：本週晨興進度申言主題 -->
+      <ul
+        v-else-if="section.title?.includes('本週晨興進度申言主題')"
+        class="list-none pl-0 space-y-2"
       >
-        {{ para }}
-      </p>
+        <li
+          v-for="(para, i) in paragraphs"
+          :key="i"
+          class="leading-relaxed text-justify"
+        >
+          {{ para }}
+        </li>
+      </ul>
+
+      <!-- 其他一般 text -->
+      <template v-else>
+        <p
+          v-for="(para, i) in paragraphs"
+          :key="i"
+          :class="['leading-relaxed whitespace-pre-line rounded-md px-3 py-2 text-justify',
+            section.title?.includes('家聚會牧養材料') ? '' : (i % 2 === 1 ? 'bg-[#B3884E]/30' : '')
+          ]"
+        >
+          {{ para }}
+        </p>
+      </template>
     </div>
+
+
+
+
+
 
     <!-- 多圖區塊 -->
     <div v-if="section.type === 'image'" class="space-y-2">
