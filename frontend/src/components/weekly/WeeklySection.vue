@@ -72,8 +72,11 @@
         <p
           v-for="(para, i) in paragraphs"
           :key="i"
-          :class="['leading-relaxed whitespace-pre-line rounded-md px-3 py-2 text-justify',
-            section.title?.includes('家聚會牧養材料') ? '' : (i % 2 === 1 ? 'bg-[#B3884E]/30' : '')
+          :class="[
+            'leading-relaxed whitespace-pre-line rounded-md px-3 py-2 text-justify',
+            (section.title?.includes('家聚會牧養材料') || section.category === 'report')
+              ? ''
+              : (i % 2 === 1 ? 'bg-[#B3884E]/30' : '')
           ]"
         >
           {{ para }}
@@ -92,8 +95,7 @@
         v-for="(para, i) in imageParagraphs"
         :key="i"
         :class="[
-          'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
-          i % 2 === 1 ? 'bg-[#B3884E]/30' : ''
+          'leading-relaxed whitespace-pre-line rounded-md px-3 py-2'
         ]"
       >
         {{ para }}
