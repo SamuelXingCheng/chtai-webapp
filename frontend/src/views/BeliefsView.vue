@@ -1,23 +1,85 @@
 <!-- src/views/BeliefsView.vue -->
 <template>
-  <section class="max-w-4xl mx-auto mt-10 px-4">
-    <h1 class="text-2xl font-bold mb-6">🙏 我們的信仰</h1>
+  <section class="max-w-4xl mx-auto mt-10 px-4 space-y-10">
 
-    <div class="space-y-4 text-gray-700 leading-relaxed">
-    <p>我們相信全本聖經是神完整的啟示，字字都是聖靈所啟示的。</p>
-    <p>我們相信神是獨一的三一神。從亙古到永遠，父、子、靈同等，是一，同時共存，互相內在。</p>
-    <p>我們相信神的兒子，就是神自己，成為肉體，由童女馬利亞所生，成為人，名叫耶穌，來作我們的救贖主和救主。</p>
-    <p>我們相信耶穌既是完整的神，也是完全的人，曾在地上生活三十三年半，使人識認父神。</p>
-    <p>我們相信耶穌是神用聖靈所膏的基督，為我們的罪被釘在十字架上。祂的死滿足神公義、聖別、榮耀的要求，為我們成功法理的救贖，並釋放祂神聖的生命。</p>
-    <p>我們相信耶穌基督埋葬三日以後，就從死裏復活；並在復活裏成為賜生命的靈，作我們生命，生命的供應和一切。</p>
-    <p>我們相信基督復活後升到天上，被神立為萬有的主。</p>
-    <p>我們相信基督升天以後，將神的靈澆灌下來，把祂所揀選的肢體浸入一個身體裏；神的靈，就是基督的靈，在地上運行……（略）</p>
-    <p>我們相信在這世代的末了，基督要回來提接祂的眾肢體，審判世界，得著全地，並建立祂永遠的國。</p>
-    <p>我們相信得勝的信徒，要在千年國度裏與基督一同作王掌權……直到永遠。</p>
+    <!-- 🔝 固定在上方的導覽列 -->
+    <div class="sticky top-[80px] z-20 bg-white shadow rounded-lg p-4">
+      <div class="grid grid-cols-3 gap-3">
+        <button
+          v-for="(section, i) in sections"
+          :key="i"
+          @click="scrollToSection(i)"
+          class="px-3 py-1 text-sm bg-gray-100 rounded hover:bg-gray-200 transition w-full"
+        >
+          {{ section?.title }}
+        </button>
+      </div>
+    </div>
+
+    <!-- 內容區塊 -->
+    <div
+      v-for="(section, i) in sections"
+      :key="i"
+      :id="`belief-section-${i}`"
+      class="bg-white rounded-xl shadow p-8"
+    >
+      <h1 class="text-2xl font-bold text-gray-800 pb-2 border-b border-gray-300">
+        {{ section?.title }}
+      </h1>
+
+      <!-- 內文：自動解析 /n -->
+      <div class="space-y-4 text-gray-700 leading-relaxed mt-6">
+        <p
+          v-for="(para, index) in formatParagraphs(section?.paragraphs)"
+          :key="index"
+          class="text-justify"
+        >
+          {{ para }}
+        </p>
+      </div>
     </div>
   </section>
 </template>
 
 <script setup lang="ts">
-// 內容可改為從 CMS / Firebase 取得
+import { ref, onMounted } from 'vue'
+
+interface PageData {
+  title: string
+  paragraphs: string | string[]
+}
+
+const sections = ref<PageData[]>([])
+
+onMounted(async () => {
+  const files = ['beliefs.json', 'who-we-are.json', 'history.json']
+  const results: PageData[] = []
+
+  for (const file of files) {
+    const res = await fetch(`/data/about/${file}`)
+    const data = await res.json()
+    results.push(data)
+  }
+
+  sections.value = results
+})
+
+// 分段工具
+function formatParagraphs(paragraphs: string | string[] | undefined) {
+  if (!paragraphs) return []
+  if (Array.isArray(paragraphs)) {
+    return paragraphs.flatMap(p => p.split(/\n+/)).map(p => p.trim()).filter(Boolean)
+  }
+  return paragraphs.split(/\n+/).map(p => p.trim()).filter(Boolean)
+}
+
+// ✅ 滾動跳轉
+function scrollToSection(i: number) {
+  const el = document.getElementById(`belief-section-${i}`)
+  if (el) {
+    const yOffset = -120 // 導航列高度
+    const y = el.getBoundingClientRect().top + window.scrollY + yOffset
+    window.scrollTo({ top: y, behavior: 'smooth' })
+  }
+}
 </script>
