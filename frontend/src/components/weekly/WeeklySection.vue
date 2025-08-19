@@ -93,7 +93,7 @@
         :key="i"
         :class="[
           'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
-          i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
+          i % 2 === 1 ? 'bg-[#B3884E]/30' : ''
         ]"
       >
         {{ para }}
@@ -120,26 +120,49 @@
         :key="i"
         :class="[
           'leading-relaxed whitespace-pre-line rounded-md px-3 py-2',
-          i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
+          i % 2 === 1 ? 'bg-[#B3884E]/30' : ''
         ]"
       >
         {{ item }}
       </li>
     </ul>
 
-    <!-- 多層次報告事項 -->
-    <div v-if="section.type === 'report'" class="space-y-1">
-      <p
-        v-for="(line, i) in reportLines"
+    <!-- ✅ 多層次報告事項 -->
+    <div v-if="section.type === 'report'" class="space-y-4">
+      <div
+        v-for="(point, i) in section.points"
         :key="i"
-        :class="[
-          getReportLineClass(line),
-          'whitespace-pre-line rounded-md px-3 py-2',
-          i % 2 === 1 ? 'bg-[#B3884E]/50' : ''
-        ]"
+        class="space-y-2"
       >
-        {{ line }}
-      </p>
+        <!-- Label + Subtitle -->
+        <h3 class="font-semibold text-2xl text-amber-700">
+          {{ point.label }}、{{ point.subtitle }}
+        </h3>
+
+        <!-- 內容 -->
+        <ul class="list-disc pl-6 space-y-1">
+          <li
+            v-for="(line, j) in point.content"
+            :key="j"
+            class="leading-relaxed text-justify"
+          >
+            {{ line }}
+          </li>
+        </ul>
+
+        <!-- Links -->
+        <div v-if="point.links && point.links.length" class="pl-6 space-y-1">
+          <a
+            v-for="(link, k) in point.links"
+            :key="k"
+            :href="link"
+            target="_blank"
+            class="text-amber-700 underline hover:text-amber-800"
+          >
+            報名連結： {{ link }}
+          </a>
+        </div>
+      </div>
     </div>
   </section>
 </template>
