@@ -62,10 +62,8 @@ class WeeklyParser:
             print(f"❌ 存圖片失敗: {e}")
             return None
 
-
-
     def _extract_images_from_para(self, para):
-        """解析段落中的圖片，直接存檔"""
+        """解析段落中的圖片，直接存檔並記錄到 section"""
         for run in para.runs:
             blips = run._element.xpath('.//a:blip')
             for blip in blips:
@@ -74,10 +72,9 @@ class WeeklyParser:
                 )
                 if rId and rId in self.doc.part.related_parts:
                     image_part = self.doc.part.related_parts[rId]
-                    self._add_image(image_part.blob)
-
-
-
+                    filename = self._add_image(image_part.blob)
+                    if filename and self.current_section is not None:
+                        self.current_section["images"].append(filename)
 
     def _parse_intro(self, paragraphs):
         section = {
@@ -88,12 +85,13 @@ class WeeklyParser:
             "content": "",
             "images": []
         }
+        self.current_section = section
 
         subtitles = []
         content_lines = []
 
         for para in paragraphs:
-            self._extract_images_from_para(para)  # 抓 intro 的圖片
+            self._extract_images_from_para(para)
             text = para.text.strip()
             if not text:
                 continue
@@ -106,17 +104,12 @@ class WeeklyParser:
 
         section["subtitle"] = " ".join(subtitles)
         section["content"] = "\n".join(content_lines)
+        self._commit_section()
         return section
 
     def _parse_progress_section(self, title, paragraphs, tables):
-        section = {
-            "type": "text",
-            "title": title,
-            "subtitle": "",
-            "category": "truth",
-            "content": "",
-            "images": []
-        }
+        self._new_section(title)
+        section = self.current_section
 
         content_lines = []
 
@@ -141,28 +134,84 @@ class WeeklyParser:
             lines = extract_from_table(table, is_root=True)
             content_lines.extend(lines)
 
-        # --------- 僅針對「本週晨興進度申言主題」進行特殊格式化 ---------
         if "本週晨興進度申言主題" in title:
             normalized_lines = []
             big_text = "\n".join(content_lines)
-
-            # 把全形數字序號轉半形（只針對序號部分）
             big_text = re.sub(
                 r'([０-９]{1,2})、',
                 lambda m: str(int("".join(chr(ord(c) - 65248) for c in m.group(1)))) + "、",
                 big_text
             )
-
-            # 一次抓每個小點 (例如 "1、xxx", "2、yyy"...)
             matches = re.findall(r'(\d{1,2}、.+?)(?=\d{1,2}、|$)', big_text, flags=re.S)
-
             for m in matches:
                 normalized_lines.append(m.strip())
-
             section["content"] = "\n".join(normalized_lines)
         else:
             section["content"] = "\n".join(content_lines)
-        # -------------------------------------------------------------------
+
+        self._commit_section()
+        return section
+
+    def _parse_general_expansion_section(self, title, paragraphs):
+        """解析 全地開展"""
+        self._new_section(title)
+        section = self.current_section
+
+        content_lines = []
+        for para in paragraphs:
+            self._extract_images_from_para(para)
+            text = para.text.strip()
+            if not text:
+                continue
+            content_lines.append(text)
+
+        if content_lines:
+            section["subtitle"] = content_lines[0]
+            section["content"] = "\n".join(content_lines[1:])
+        else:
+            section["subtitle"] = ""
+            section["content"] = ""
+
+        section["category"] = "expansion"
+        self._commit_section()
+        return section
+
+
+    def _parse_home_meeting_section(self, title, paragraphs):
+        section = {
+            "type": "text",
+            "title": title,
+            "subtitle": "",
+            "category": "truth",
+            "sections": [],
+            "images": []
+        }
+
+        current_sub = None
+        for para in paragraphs:
+            self._extract_images_from_para(para)
+            text = para.text.strip()
+            if not text:
+                continue
+            style = para.style.name
+
+            if not section["subtitle"] and style == "Normal":
+                section["subtitle"] = text
+                continue
+
+            if style == "Normal" and re.match(r'^[一二三四五六七八九十]+、', text):
+                if current_sub:
+                    section["sections"].append(current_sub)
+                current_sub = {"heading": text, "paragraphs": []}
+                continue
+
+            if style in ["Normal", "List Paragraph"]:
+                if not current_sub:
+                    current_sub = {"heading": "", "paragraphs": []}
+                current_sub["paragraphs"].append(text)
+
+        if current_sub:
+            section["sections"].append(current_sub)
 
         return section
 
@@ -176,15 +225,13 @@ class WeeklyParser:
                 break
             intro_paragraphs.append(para)
 
-        intro_section = self._parse_intro(intro_paragraphs)
-        self.sections.append(intro_section)
+        self._parse_intro(intro_paragraphs)
 
         i = start_index
         table_index = 0
-
         while i < len(self.doc.paragraphs):
             para = self.doc.paragraphs[i]
-            self._extract_images_from_para(para)  # 每個段落都檢查圖片
+            self._extract_images_from_para(para)
             text = para.text.strip()
             style = para.style.name
             if not text:
@@ -206,7 +253,6 @@ class WeeklyParser:
                             break
                         block.append(p)
                         i += 1
-
                     tables = []
                     for t in self.doc.tables[table_index:]:
                         first_cell_text = t.cell(0, 0).text.strip()
@@ -217,11 +263,38 @@ class WeeklyParser:
                         tables = [t]
                         table_index += 1
                         break
-
-                    progress_section = self._parse_progress_section(text, block, tables)
-                    self.sections.append(progress_section)
+                    self._parse_progress_section(text, block, tables)
                 else:
                     self._new_section(text)
+
+            elif style == "Normal" and text.startswith("全地開展"):
+                print("🔍 偵測到 Normal 形式的 全地開展 -> 進入 _parse_general_expansion_section")
+                block = []
+                i += 1
+                while i < len(self.doc.paragraphs):
+                    p = self.doc.paragraphs[i]
+                    p_text = p.text.strip()
+                    if "家聚會牧養材料" in p_text:
+                        i -= 1
+                        break
+                    block.append(p)
+                    i += 1
+                self._parse_general_expansion_section(text, block)
+
+            elif style == "Normal" and "家聚會牧養材料" in text:
+                print("🔍 偵測到 Normal 形式的 家聚會牧養材料 -> 進入 _parse_home_meeting_section")
+                block = []
+                i += 1
+                while i < len(self.doc.paragraphs):
+                    p = self.doc.paragraphs[i]
+                    p_text = p.text.strip()
+                    if p.style.name == "Heading 2" or ("聖經學習單" in p_text):
+                        i -= 1
+                        break
+                    block.append(p)
+                    i += 1
+                home_section = self._parse_home_meeting_section(text, block)
+                self.sections.append(home_section)
 
             elif style == "Heading 3":
                 self._add_subtitle(text)
