@@ -4,6 +4,7 @@ import os
 import io
 from docx import Document
 from PIL import Image
+import re
 
 class WeeklyParser:
     def __init__(self, file_path: str, image_dir: str):
@@ -121,9 +122,9 @@ class WeeklyParser:
 
         def extract_from_table(table, is_root=False):
             lines = []
-            for row in table.rows:
+            for row_idx, row in enumerate(table.rows):
                 row_texts = [p.text.strip() for cell in row.cells for p in cell.paragraphs if p.text.strip()]
-                if is_root and row is table.rows[0] and row_texts and not section["subtitle"]:
+                if is_root and row_idx == 0 and row_texts and not section["subtitle"]:
                     section["subtitle"] = " ".join(row_texts)
                 else:
                     if row_texts:
@@ -134,13 +135,35 @@ class WeeklyParser:
             return lines
 
         for para in paragraphs:
-            self._extract_images_from_para(para)  # 抓 progress 的圖片
+            self._extract_images_from_para(para)
 
         for table in tables:
             lines = extract_from_table(table, is_root=True)
             content_lines.extend(lines)
 
-        section["content"] = "\n".join(content_lines)
+        # --------- 僅針對「本週晨興進度申言主題」進行特殊格式化 ---------
+        if "本週晨興進度申言主題" in title:
+            normalized_lines = []
+            big_text = "\n".join(content_lines)
+
+            # 把全形數字序號轉半形（只針對序號部分）
+            big_text = re.sub(
+                r'([０-９]{1,2})、',
+                lambda m: str(int("".join(chr(ord(c) - 65248) for c in m.group(1)))) + "、",
+                big_text
+            )
+
+            # 一次抓每個小點 (例如 "1、xxx", "2、yyy"...)
+            matches = re.findall(r'(\d{1,2}、.+?)(?=\d{1,2}、|$)', big_text, flags=re.S)
+
+            for m in matches:
+                normalized_lines.append(m.strip())
+
+            section["content"] = "\n".join(normalized_lines)
+        else:
+            section["content"] = "\n".join(content_lines)
+        # -------------------------------------------------------------------
+
         return section
 
     # ---------- 主流程 ----------
