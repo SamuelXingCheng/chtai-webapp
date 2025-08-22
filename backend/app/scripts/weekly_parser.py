@@ -176,7 +176,6 @@ class WeeklyParser:
         self._commit_section()
         return section
 
-
     def _parse_home_meeting_section(self, title, paragraphs):
         section = {
             "type": "text",
@@ -214,6 +213,25 @@ class WeeklyParser:
             section["sections"].append(current_sub)
 
         return section
+
+    def _parse_bible_study_section(self, title: str, block: list[any]):
+        questions = []
+        for p in block:
+            text = p.text.strip()
+            if text:
+                questions.append(text)
+
+        section = {
+            "type": "truth",
+            "title": title,
+            "questions": questions,
+            "answers": []
+        }
+        print(f"📘 聖經學習單題目共 {len(questions)} 行")
+
+        # ✅ 直接 append，不要動 current_section
+        self.sections.append(section)
+        # self.current_section = section   ❌ 拿掉這行
 
     # ---------- 主流程 ----------
     def parse(self):
@@ -268,7 +286,6 @@ class WeeklyParser:
                     self._new_section(text)
 
             elif style == "Normal" and text.startswith("全地開展"):
-                print("🔍 偵測到 Normal 形式的 全地開展 -> 進入 _parse_general_expansion_section")
                 block = []
                 i += 1
                 while i < len(self.doc.paragraphs):
@@ -282,19 +299,60 @@ class WeeklyParser:
                 self._parse_general_expansion_section(text, block)
 
             elif style == "Normal" and "家聚會牧養材料" in text:
-                print("🔍 偵測到 Normal 形式的 家聚會牧養材料 -> 進入 _parse_home_meeting_section")
                 block = []
                 i += 1
                 while i < len(self.doc.paragraphs):
                     p = self.doc.paragraphs[i]
                     p_text = p.text.strip()
                     if p.style.name == "Heading 2" or ("聖經學習單" in p_text):
-                        i -= 1
                         break
                     block.append(p)
                     i += 1
                 home_section = self._parse_home_meeting_section(text, block)
                 self.sections.append(home_section)
+                continue
+
+            elif style == "Normal" and "章聖經學習單" in text:
+                print(f"🔍 偵測到聖經學習單 -> {text}")
+                block = [para]  # ✅ 保留第一行
+                i += 1
+                while i < len(self.doc.paragraphs):
+                    p = self.doc.paragraphs[i]
+                    p_text = p.text.strip()
+                    if "第三頁" in p_text:
+                        print("🚪 偵測到第三頁 -> 題目中斷")
+                        break
+                    block.append(p)
+                    i += 1
+                self._parse_bible_study_section("聖經學習單", block)
+
+            elif style == "Normal" and "聖經學習單答案" in text:
+                print("🔍 偵測到聖經學習單答案區: ", text)
+                answers = []
+
+                # ✅ 先檢查這一行是否除了「聖經學習單答案」還有其他文字
+                cleaned = text.replace("聖經學習單答案", "").replace("：", "").strip()
+                if cleaned:
+                    answers.append(cleaned)
+
+                i += 1
+                while i < len(self.doc.paragraphs):
+                    p = self.doc.paragraphs[i]
+                    p_text = p.text.strip()
+                    if "第四頁" in p_text or "水流交通" in p_text:
+                        print("🚪 偵測到第四頁/水流交通 -> 答案中斷")
+                        break
+                    if p_text:
+                        answers.append(p_text)
+                    i += 1
+
+                if self.sections and self.sections[-1]["type"] == "truth":
+                    print(f"📝 聖經學習單答案共 {len(answers)} 行")
+                    self.sections[-1]["answers"] = answers
+
+                if self.sections and self.sections[-1]["type"] == "truth":
+                    print(f"📝 聖經學習單答案共 {len(answers)} 行")
+                    self.sections[-1]["answers"] = answers
 
             elif style == "Heading 3":
                 self._add_subtitle(text)
@@ -312,7 +370,6 @@ class WeeklyParser:
             "title": "主後二〇二五年 八月十七日 台中市召會週訊 第2171期",
             "sections": self.sections
         }
-
 
 if __name__ == "__main__":
     raw_file = "app/data/weekly/raw/weekly-2171.docx"
