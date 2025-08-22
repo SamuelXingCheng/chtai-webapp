@@ -222,16 +222,60 @@ class WeeklyParser:
                 questions.append(text)
 
         section = {
-            "type": "truth",
+            "type": "truth",           # ✅ 保持 truth
+            "subtype": "bible_study",  # ✅ 加 subtype 區分
             "title": title,
             "questions": questions,
             "answers": []
         }
         print(f"📘 聖經學習單題目共 {len(questions)} 行")
 
-        # ✅ 直接 append，不要動 current_section
         self.sections.append(section)
-        # self.current_section = section   ❌ 拿掉這行
+
+
+    def _parse_bible_gleanings_section(self, title: str, paragraphs: list):
+        section = {
+            "type": "text",
+            "title": title,
+            "category": "truth",
+            "sections": [],
+            "author": ""
+        }
+
+        current_sub = None
+        for para in paragraphs:
+            self._extract_images_from_para(para)
+            text = para.text.strip()
+            if not text:
+                continue
+
+            # ✅ 檢查是否包含作者標記（例如 "❖張怡柔"）
+            if "❖" in text:
+                parts = text.split("❖", 1)
+                content = parts[0].strip()
+                author = parts[1].strip()
+                section["author"] = author
+                text = content  # 把段落剩下的內容繼續放進 paragraphs
+
+            style = para.style.name
+
+            # ✅ 偵測子標題（例：生命讀經、真理要點、生命經歷）
+            if re.match(r'^(生命讀經|真理要點|生命經歷)', text):
+                if current_sub:
+                    section["sections"].append(current_sub)
+                current_sub = {"heading": text, "paragraphs": []}
+                continue
+
+            # ✅ 其他都是段落內容
+            if not current_sub:
+                current_sub = {"heading": "", "paragraphs": []}
+            current_sub["paragraphs"].append(text)
+
+        if current_sub:
+            section["sections"].append(current_sub)
+
+        self.sections.append(section)
+        return section
 
     # ---------- 主流程 ----------
     def parse(self):
@@ -346,13 +390,31 @@ class WeeklyParser:
                         answers.append(p_text)
                     i += 1
 
-                if self.sections and self.sections[-1]["type"] == "truth":
-                    print(f"📝 聖經學習單答案共 {len(answers)} 行")
-                    self.sections[-1]["answers"] = answers
+                target = None
+                for sec in reversed(self.sections):
+                    if sec.get("subtype") == "bible_study":
+                        target = sec
+                        break
 
-                if self.sections and self.sections[-1]["type"] == "truth":
+                if target:
                     print(f"📝 聖經學習單答案共 {len(answers)} 行")
-                    self.sections[-1]["answers"] = answers
+                    target["answers"] = answers
+                else:
+                    print("⚠️ 沒找到聖經學習單區塊，答案無法存入")
+
+            elif style == "Normal" and "讀經拾穗" in text:
+                block = []
+                i += 1
+                while i < len(self.doc.paragraphs):
+                    p = self.doc.paragraphs[i]
+                    p_text = p.text.strip()
+                    # ✅ 偵測到「結晶圖表」或下一個 Heading 2 結束
+                    if "結晶圖表" in p_text:
+                        i -= 1
+                        break
+                    block.append(p)
+                    i += 1
+                self._parse_bible_gleanings_section(text, block)
 
             elif style == "Heading 3":
                 self._add_subtitle(text)
