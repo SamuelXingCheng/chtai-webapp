@@ -277,6 +277,38 @@ class WeeklyParser:
         self.sections.append(section)
         return section
 
+    def _parse_crystal_chart_section(self, title: str, paragraphs: list):
+        section = {
+            "type": "image",
+            "title": title,
+            "category": "truth",
+            "content": "",
+            "images": []
+        }
+
+        # ✅ 記錄開始前的圖片編號
+        start_img_index = self.image_count
+
+        content_lines = []
+        for para in paragraphs:
+            # 嘗試抓圖片（會讓 self.image_count 增加）
+            self._extract_images_from_para(para)
+            text = para.text.strip()
+            if text:
+                content_lines.append(text)
+
+        # ✅ 文字內容
+        section["content"] = "\n".join(content_lines)
+
+        # ✅ 如果在這個段落有新增圖片，補上圖片檔名
+        if self.image_count > start_img_index:
+            for idx in range(start_img_index + 1, self.image_count + 1):
+                section["images"].append(f"{idx}.png")
+
+        self.sections.append(section)
+        return section
+
+
     # ---------- 主流程 ----------
     def parse(self):
         intro_paragraphs = []
@@ -415,6 +447,21 @@ class WeeklyParser:
                     block.append(p)
                     i += 1
                 self._parse_bible_gleanings_section(text, block)
+
+            elif style == "Normal" and "結晶圖表" in text:
+                block = []
+                i += 1
+                while i < len(self.doc.paragraphs):
+                    p = self.doc.paragraphs[i]
+                    p_text = p.text.strip()
+                    # ✅ 偵測下一個區塊的開始（例如「水流交通」或 Heading 2）
+                    if "聖經學習單答案" in p_text:
+                        i -= 1
+                        break
+                    block.append(p)
+                    i += 1
+                self._parse_crystal_chart_section(text, block)
+
 
             elif style == "Heading 3":
                 self._add_subtitle(text)
