@@ -172,7 +172,7 @@ class WeeklyParser:
             section["subtitle"] = ""
             section["content"] = ""
 
-        section["category"] = "expansion"
+        section["category"] = "report"
         self._commit_section()
         return section
 
