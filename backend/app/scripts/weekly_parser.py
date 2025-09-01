@@ -308,6 +308,59 @@ class WeeklyParser:
         self.sections.append(section)
         return section
 
+    def _parse_waterflow_section(self, title: str, block: list):
+        section = {
+            "type": "text",
+            "title": title,
+            "category": "truth",
+            "points": []
+        }
+
+        current_point = None
+
+        for p in block:
+            text = p.text.strip()
+            if not text:
+                continue
+
+            # 1. 偵測「一、二、三」綱目（子標題）
+            match = re.match(r"^([一二三四五六七八九十]+)[、.]\s*(.*)", text)
+            if match:
+                # 如果有正在處理的 point，先收進去
+                if current_point:
+                    section["points"].append(current_point)
+
+                label, subtitle = match.groups()
+                current_point = {
+                    "label": label,
+                    "subtitle": subtitle,
+                    "content": ""
+                }
+
+            # 2. 偵測第一個大標題（非數字綱目）
+            elif current_point is None and not section["points"]:
+                # 第一行通常是大標題
+                current_point = {
+                    "label": "",
+                    "subtitle": text,
+                    "content": ""
+                }
+
+            # 3. 累加內文
+            else:
+                if current_point:
+                    if current_point["content"]:
+                        current_point["content"] += "\n" + text
+                    else:
+                        current_point["content"] = text
+
+        # 最後一個 point 收進去
+        if current_point:
+            section["points"].append(current_point)
+
+        self.sections.append(section)
+
+
 
     # ---------- 主流程 ----------
     def parse(self):
@@ -462,6 +515,19 @@ class WeeklyParser:
                     i += 1
                 self._parse_crystal_chart_section(text, block)
 
+            elif style == "Normal" and "水流交通" in text:
+                block = []
+                i += 1
+                while i < len(self.doc.paragraphs):
+                    p = self.doc.paragraphs[i]
+                    p_text = p.text.strip()
+                    # ✅ 偵測到「第五頁」結束
+                    if "第五頁" in p_text:
+                        i -= 1
+                        break
+                    block.append(p)
+                    i += 1
+                self._parse_waterflow_section(text, block)
 
             elif style == "Heading 3":
                 self._add_subtitle(text)
