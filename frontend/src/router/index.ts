@@ -10,6 +10,7 @@ import RegisterView from '../views/RegisterView.vue'
 import RegisterFormView from '../views/RegisterFormView.vue'
 import WeeklyView from '../views/WeeklyView.vue'
 import LifeStudyReader from '../components/lifeStudy/LifeStudyReader.vue'
+import AttendanceView from "../views/AttendanceView.vue";
 
 const routes = [
   {
@@ -60,6 +61,11 @@ const routes = [
     path: '/life-study',
     name: 'LifeStudy',
     component: LifeStudyReader
+  },
+  {
+    path: "/attendance",
+    name: "Attendance",
+    component: AttendanceView,
   }
 ]
 
