@@ -14,11 +14,19 @@
         </p>
 
         <button
-          @click="submitAttendance"
-          class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 disabled:bg-gray-300"
-          :disabled="submitting"
+          @click="submitAttendance('上班')"
+          class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 disabled:bg-gray-300 mb-2"
+          :disabled="submittingMode === '上班'"
         >
-          {{ submitting ? "送出中..." : "送出打卡" }}
+          {{ submittingMode === '上班' ? "送出中..." : "上班打卡" }}
+        </button>
+
+        <button
+          @click="submitAttendance('下班')"
+          class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600 disabled:bg-gray-300"
+          :disabled="submittingMode === '下班'"
+        >
+          {{ submittingMode === '下班' ? "送出中..." : "下班打卡" }}
         </button>
       </div>
     </div>
@@ -28,14 +36,16 @@
 <script setup>
 import { ref, onMounted } from "vue";
 
-// 狀態
 const location = ref({ lat: null, lng: null });
 const loading = ref(true);
-const submitting = ref(false);
+const submittingMode = ref(null); // "上班" or "下班"
+let liffInstance = null;
+
+// API base 取自環境變數
+const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
+const LIFF_ID = import.meta.env.VITE_LIFF_ID || "2008053226-j5P2ex8l";
 
 // 初始化 LIFF
-const LIFF_ID = "2008053226-j5P2ex8l";
-
 async function initLiff() {
   const liff = (await import("@line/liff")).default;
   await liff.init({ liffId: LIFF_ID });
@@ -54,61 +64,73 @@ function getLocation() {
     }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        resolve({
-          lat: pos.coords.latitude,
-          lng: pos.coords.longitude,
-        });
+        resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude });
       },
-      (err) => reject(err),
+      (err) => {
+        if (err.code === 1) reject(new Error("請允許定位權限才能打卡"));
+        else reject(new Error("定位失敗，請稍後再試"));
+      },
       { enableHighAccuracy: true }
     );
   });
 }
 
 // 送出打卡
-async function submitAttendance() {
-  submitting.value = true;
+async function submitAttendance(mode) {
+  submittingMode.value = mode;
   try {
-    const liff = await initLiff();
-    const profile = await liff.getProfile();
+    const profile = await liffInstance.getProfile();
 
     const payload = {
       userId: profile.userId,
+      mode, // 上班 or 下班
       latitude: location.value.lat,
       longitude: location.value.lng,
-      timestamp: new Date().toISOString(),
     };
 
-    await fetch("http://localhost:8000/api/attendance", {
+    console.log("📡 API URL:", `${API_BASE}/attendance_api.php`);
+    console.log("📦 Payload:", payload);
+
+    const res = await fetch(`${API_BASE}/attendance_api.php`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload),
     });
 
-    alert("✅ 打卡成功！");
-    liff.closeWindow();
+    // 先抓 raw response
+    const text = await res.text();
+    console.log("🔎 Raw response:", text);
+
+    // 嘗試轉成 JSON
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch (e) {
+      alert("❌ 後端回傳的不是 JSON: " + text);
+      return;
+    }
+
+    alert(data.message || "⚠️ 未知回應");
+    if (data.status === "success") {
+      liffInstance.closeWindow();
+    }
   } catch (err) {
     alert("❌ 打卡失敗: " + err.message);
   } finally {
-    submitting.value = false;
+    submittingMode.value = null;
   }
 }
 
-// 頁面載入時就抓定位
+
+// 頁面載入時
 onMounted(async () => {
   try {
+    liffInstance = await initLiff();
     location.value = await getLocation();
   } catch (err) {
-    alert("⚠️ 定位失敗: " + err.message);
+    alert("⚠️ 初始化失敗: " + err.message);
   } finally {
     loading.value = false;
   }
 });
 </script>
-
-<style>
-body {
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
-    Helvetica, Arial, sans-serif;
-}
-</style>
