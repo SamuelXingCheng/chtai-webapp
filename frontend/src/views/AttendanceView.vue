@@ -59,7 +59,7 @@
       <!-- 框 2：轉傳提示 -->
       <div class="bg-gray-50 border border-blue-300 rounded-lg p-3 mb-4 text-left">
         <p class="text-sm font-semibold text-gray-800">
-          👉 請複製下方文字並轉傳給以下主管：
+          👉 請複製下方文字並轉傳給所屬主管：
           <span v-for="(sup, i) in supervisors" :key="sup.user_id">
             {{ sup.name }}<span v-if="i < supervisors.length - 1">、</span>
           </span>
@@ -135,10 +135,10 @@ const copyText = computed(() => {
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const LIFF_ID = import.meta.env.VITE_LIFF_ID || "2008097735-moxnzwdM";
 
-// 公司座標 & 半徑
-const COMPANY_LAT = 24.13384;
-const COMPANY_LNG = 120.68162;
-const ALLOWED_RADIUS = 10; // 公尺
+// 公司座標 & 半徑（從 .env 讀取，若沒有就用預設值）
+const COMPANY_LAT = Number(import.meta.env.VITE_COMPANY_LAT) || 24.13384;
+const COMPANY_LNG = Number(import.meta.env.VITE_COMPANY_LNG) || 120.68162;
+const ALLOWED_RADIUS = Number(import.meta.env.VITE_ALLOWED_RADIUS) || 200; // 公尺
 
 // 初始化 LIFF
 async function initLiff() {
@@ -186,7 +186,7 @@ function calculateDistance(lat, lng) {
 // 複製訊息
 function copyMessage() {
   navigator.clipboard.writeText(copyText.value).then(() => {
-    alert("✅ 已複製到剪貼簿");
+    alert("✅ 已複製到剪貼簿，請至主管LINE聊天室貼上並送出");
   });
 }
 
