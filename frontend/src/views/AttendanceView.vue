@@ -50,40 +50,50 @@
       <h3 class="text-lg font-bold mb-4">打卡結果</h3>
 
       <!-- 框 1：系統提示 -->
-      <div class="bg-yellow-50 border border-yellow-400 rounded-lg p-3 mb-4 text-left">
+      <div
+        :class="[
+          'rounded-lg p-3 mb-4 text-left',
+          modalTitle === '⚠️ 待主管審核'
+            ? 'bg-yellow-50 border border-yellow-400'
+            : 'bg-green-50 border border-green-400'
+        ]"
+      >
         <p class="text-sm text-gray-800 whitespace-pre-line">
           {{ resultMessage }}
         </p>
       </div>
 
-      <!-- 框 2：轉傳提示 -->
-      <div class="bg-gray-50 border border-blue-300 rounded-lg p-3 mb-4 text-left">
-        <p class="text-sm font-semibold text-gray-800">
-          👉 請複製下方文字並轉傳給所屬主管：
-          <span v-for="(sup, i) in supervisors" :key="sup.user_id">
-            {{ sup.name }}<span v-if="i < supervisors.length - 1">、</span>
-          </span>
-        </p>
-      </div>
+      <!-- 框 2 + 框 3 + 複製按鈕：僅在待審核時顯示 -->
+      <template v-if="modalTitle === '⚠️ 待主管審核'">
+        <!-- 框 2：轉傳提示 -->
+        <div class="bg-gray-50 border border-blue-300 rounded-lg p-3 mb-4 text-left">
+          <p class="text-sm font-semibold text-gray-800">
+            👉 請複製下方文字並轉傳給所屬主管：
+            <span v-for="(sup, i) in supervisors" :key="sup.user_id">
+              {{ sup.name }}<span v-if="i < supervisors.length - 1">、</span>
+            </span>
+          </p>
+        </div>
 
-      <!-- 框 3：完整訊息內容 -->
-      <div class="bg-gray-50 border border-blue-300 rounded-lg p-3 mb-4 text-left text-sm text-gray-700 break-words">
-        <p>弟兄您好，以下是待審核的打卡資料：</p>
-        <p>員工：{{ employeeName }}</p>
-        <p>打卡時間：{{ attendanceTime }}</p>
-        <p>外地打卡原因：{{ attendanceReason }}</p>
-        <p class="mt-2 font-semibold">主管審核連結：</p>
-        <p>{{ approvalUrl }}</p>
-        <p>請您協助審核，謝謝！</p>
-      </div>
+        <!-- 框 3：完整訊息內容 -->
+        <div class="bg-gray-50 border border-blue-300 rounded-lg p-3 mb-4 text-left text-sm text-gray-700 break-words">
+          <p>弟兄您好，以下是待審核的打卡資料：</p>
+          <p>員工：{{ employeeName }}</p>
+          <p>打卡時間：{{ attendanceTime }}</p>
+          <p>外地打卡原因：{{ attendanceReason }}</p>
+          <p class="mt-2 font-semibold">主管審核連結：</p>
+          <p>{{ approvalUrl }}</p>
+          <p>請您協助審核，謝謝！</p>
+        </div>
 
-      <!-- 複製按鈕 -->
-      <button
-        @click="copyMessage"
-        class="w-full bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 mb-3 flex items-center justify-center gap-2"
-      >
-        複製審核文字
-      </button>
+        <!-- 複製按鈕 -->
+        <button
+          @click="copyMessage"
+          class="w-full bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 mb-3 flex items-center justify-center gap-2"
+        >
+          複製審核文字
+        </button>
+      </template>
 
       <!-- 關閉 -->
       <button
@@ -96,6 +106,7 @@
   </div>
 </template>
 
+
 <script setup>
 import { ref, computed, onMounted } from "vue";
 
@@ -106,9 +117,10 @@ let liffInstance = null;
 
 // Modal 狀態
 const showResultModal = ref(false);
-const resultMessage = ref(""); // 框1
-const approvalUrl = ref("");   // 框3
-const supervisors = ref([]);   // 框2
+const resultMessage = ref("");
+const approvalUrl = ref("");
+const supervisors = ref([]);
+const modalTitle = ref("");
 
 // 員工資訊
 const employeeName = ref("");
@@ -135,7 +147,7 @@ const copyText = computed(() => {
 const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
 const LIFF_ID = import.meta.env.VITE_LIFF_ID || "2008097735-moxnzwdM";
 
-// 公司座標 & 半徑（從 .env 讀取，若沒有就用預設值）
+// 公司座標 & 半徑
 const COMPANY_LAT = Number(import.meta.env.VITE_COMPANY_LAT) || 24.13384;
 const COMPANY_LNG = Number(import.meta.env.VITE_COMPANY_LNG) || 120.68162;
 const ALLOWED_RADIUS = Number(import.meta.env.VITE_ALLOWED_RADIUS) || 200; // 公尺
@@ -238,6 +250,13 @@ async function submitAttendance(mode) {
     employeeName.value     = data.employee_name || "";
     attendanceTime.value   = data.attendance_time || "";
     attendanceReason.value = data.reason || "";
+
+    // ✅ 根據有沒有審核需求設定 modalTitle
+    if (approvalUrl.value && supervisors.value.length > 0) {
+      modalTitle.value = "⚠️ 待主管審核";
+    } else {
+      modalTitle.value = "✅ 打卡成功";
+    }
 
     showResultModal.value = true;
   } catch (err) {
