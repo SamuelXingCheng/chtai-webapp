@@ -81,6 +81,7 @@
           <p>員工：{{ employeeName }}</p>
           <p>打卡時間：{{ attendanceTime }}</p>
           <p>外地打卡原因：{{ attendanceReason }}</p>
+          <p>打卡地圖：{{ mapUrl }}</p>
           <p class="mt-2 font-semibold">主管審核連結：</p>
           <p>{{ approvalUrl }}</p>
           <p>請您協助審核，謝謝！</p>
@@ -126,6 +127,7 @@ const modalTitle = ref("");
 const employeeName = ref("");
 const attendanceTime = ref("");
 const attendanceReason = ref("");
+const mapUrl = ref("");
 
 // 複製的完整文字
 const copyText = computed(() => {
@@ -135,6 +137,8 @@ const copyText = computed(() => {
     `員工：${employeeName.value}`,
     `打卡時間：${attendanceTime.value}`,
     `外地打卡原因：${attendanceReason.value}`,
+    ``,
+    mapUrl.value ? `打卡地圖：${mapUrl.value}` : "",
     ``,
     `主管審核連結：`,
     approvalUrl.value,
@@ -150,7 +154,7 @@ const LIFF_ID = import.meta.env.VITE_LIFF_ID || "2008097735-moxnzwdM";
 // 公司座標 & 半徑
 const COMPANY_LAT = Number(import.meta.env.VITE_COMPANY_LAT) || 24.13384;
 const COMPANY_LNG = Number(import.meta.env.VITE_COMPANY_LNG) || 120.68162;
-const ALLOWED_RADIUS = Number(import.meta.env.VITE_ALLOWED_RADIUS) || 200; // 公尺
+const ALLOWED_RADIUS = Number(import.meta.env.VITE_ALLOWED_RADIUS) || 200; // 預設 200
 
 // 初始化 LIFF
 async function initLiff() {
@@ -209,6 +213,7 @@ async function submitAttendance(mode) {
   try {
     const idToken = liff.getDecodedIDToken();
     const distance = calculateDistance(location.value.lat, location.value.lng);
+    console.log("distance:", distance, "ALLOWED_RADIUS:", ALLOWED_RADIUS);
 
     let reason = null;
     if (distance > ALLOWED_RADIUS) {
@@ -250,6 +255,7 @@ async function submitAttendance(mode) {
     employeeName.value     = data.employee_name || "";
     attendanceTime.value   = data.attendance_time || "";
     attendanceReason.value = data.reason || "";
+    mapUrl.value           = data.map_url || "";
 
     // ✅ 根據有沒有審核需求設定 modalTitle
     if (approvalUrl.value && supervisors.value.length > 0) {
