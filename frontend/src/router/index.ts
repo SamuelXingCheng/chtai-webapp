@@ -11,6 +11,7 @@ import RegisterFormView from '../views/RegisterFormView.vue'
 import WeeklyView from '../views/WeeklyView.vue'
 import LifeStudyReader from '../components/lifeStudy/LifeStudyReader.vue'
 import AttendanceView from "../views/AttendanceView.vue";
+import RollCallLiffView from "../views/RollCallLiffView.vue";
 
 const routes = [
   {
@@ -66,7 +67,13 @@ const routes = [
     path: "/attendance",
     name: "Attendance",
     component: AttendanceView,
+  },
+  {
+    path: '/rollcall',
+    name: 'RollcallLiff',
+    component: () => import('../views/RollcallLiffView.vue')
   }
+  
 ]
 
 const router = createRouter({
