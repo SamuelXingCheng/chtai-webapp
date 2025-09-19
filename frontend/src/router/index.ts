@@ -10,8 +10,8 @@ import RegisterView from '../views/RegisterView.vue'
 import RegisterFormView from '../views/RegisterFormView.vue'
 import WeeklyView from '../views/WeeklyView.vue'
 import LifeStudyReader from '../components/lifeStudy/LifeStudyReader.vue'
-import AttendanceView from "../views/AttendanceView.vue";
-import RollCallLiffView from "../views/RollCallLiffView.vue";
+import AttendanceView from "../views/AttendanceView.vue"
+import RollcallLiffView from "../views/Rollcall/RollcallLiffView.vue"
 
 const routes = [
   {
@@ -54,7 +54,8 @@ const routes = [
     name: 'RegisterView',
     component: RegisterView
   },
-  { path: '/weekly',
+  { 
+    path: '/weekly',
     name: 'Weekly', 
     component: WeeklyView 
   },
@@ -70,10 +71,9 @@ const routes = [
   },
   {
     path: '/rollcall',
-    name: 'RollcallLiff',
-    component: () => import('../views/RollcallLiffView.vue')
+    name: 'Rollcall',
+    component: RollcallLiffView
   }
-  
 ]
 
 const router = createRouter({
