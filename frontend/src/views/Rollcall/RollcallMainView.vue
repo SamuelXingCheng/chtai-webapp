@@ -1,61 +1,128 @@
 <!-- src/views/Rollcall/RollcallMainView.vue -->
 <template>
   <div>
-    <h3 class="text-lg font-bold mb-2">永和小區名單</h3>
+    <!-- 篩選列 (聚會/日期按鈕) -->
+    <RollcallFilterBar
+      :selectedMeeting="selectedMeeting"
+      :selectedDate="selectedDate"
+      @update:meeting="selectedMeeting = $event"
+      @update:date="selectedDate = $event"
+    />
 
-    <div v-if="loadingMembers" class="text-gray-500 text-sm">
-      名單載入中...
-    </div>
-
-    <div v-else class="grid grid-cols-2 gap-3">
-      <div
+    <!-- 名單卡片 -->
+    <div class="grid grid-cols-2 gap-3">
+      <MemberCard
         v-for="m in members"
         :key="m.member_id"
-        class="relative border rounded-lg p-3 shadow-sm flex flex-col items-center cursor-pointer hover:shadow-md transition"
-        :class="{ 'bg-green-100 border-green-400': selectedMembers.includes(m) }"
-        @click="$emit('toggleSelect', m)"
-      >
-        <span
-          class="absolute top-2 right-2 text-xs px-2 py-0.5 rounded-full"
-          :class="m.sex === '男' ? 'bg-blue-500 text-white' : 'bg-pink-500 text-white'"
-        >
-          {{ m.sex }}
-        </span>
-
-        <span class="font-medium text-gray-800 mb-2">{{ m.member_name }}</span>
-
-        <span
-          class="text-xs px-2 py-1 rounded-full"
-          :class="selectedMembers.includes(m) ? 'bg-green-500 text-white' : 'bg-gray-200 text-gray-600'"
-        >
-          {{ selectedMembers.includes(m) ? "已選" : "未選" }}
-        </span>
-      </div>
+        :name="m.member_name"
+        :selected="selectedMembers.includes(m.member_id)"
+        @toggle="toggleSelect(m.member_id)"
+      />
     </div>
 
-    <h4 class="mt-4 font-bold">已選清單</h4>
-    <ul class="text-sm mb-3">
-      <li v-for="m in selectedMembers" :key="m.member_id">
-        {{ m.member_name }}
-      </li>
-    </ul>
+    <!-- 統計 & 送出 -->
+    <div class="mt-4 text-center">
+      <p class="mb-2">
+        ✅ 已點 {{ selectedMembers.length }} / 總共 {{ members.length }}
+      </p>
+      <button
+        class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
+        @click="handleSubmit"
+        :disabled="selectedMembers.length === 0"
+      >
+        送出點名
+      </button>
+    </div>
 
-    <button
-      @click="$emit('submitRollcall')"
-      class="w-full bg-blue-500 text-white py-2 px-4 rounded-lg hover:bg-blue-600"
-      :disabled="selectedMembers.length === 0 || loading"
-    >
-      送出點名
-    </button>
+    <!-- 顯示回饋訊息 -->
+    <div v-if="submitMessage" class="mt-4 text-center text-sm"
+         :class="submitSuccess ? 'text-green-600' : 'text-yellow-600'">
+      {{ submitMessage }}
+    </div>
   </div>
 </template>
 
 <script setup>
-defineProps({
-  members: Array,
-  selectedMembers: Array,
-  loading: Boolean,
-  loadingMembers: Boolean
+import { ref, onMounted, watch } from "vue"
+import RollcallFilterBar from "./components/RollcallFilterBar.vue"
+import MemberCard from "./components/MemberCard.vue"
+import { fetchMembers, submitAttendance } from "../../api/rollcall.js"
+import { MEETINGS } from "../../config/rollcallmeetings.js"
+
+const selectedMeeting = ref(MEETINGS.LORDSDAY)  // 預設主日
+const selectedDate = ref(new Date().toISOString().slice(0, 10))
+
+const members = ref([])
+const selectedMembers = ref([])
+const loadingMembers = ref(false)
+
+const submitMessage = ref("")
+const submitSuccess = ref(false)
+
+// 抓名單
+async function loadMembers() {
+  loadingMembers.value = true
+  try {
+    members.value = await fetchMembers(selectedMeeting.value, selectedDate.value)
+    console.log("本地/中央回傳名單：", members.value)
+  } catch (err) {
+    console.error("載入名單失敗：", err.message)
+    members.value = []
+  } finally {
+    loadingMembers.value = false
+  }
+}
+
+// 點選卡片
+function toggleSelect(memberId) {
+  const idx = selectedMembers.value.indexOf(memberId)
+  if (idx >= 0) {
+    selectedMembers.value.splice(idx, 1) // 取消
+  } else {
+    selectedMembers.value.push(memberId) // 出席
+  }
+}
+
+// 送出點名
+async function handleSubmit() {
+  try {
+    console.log("送出前 payload：", {
+      district: "永和",
+      meeting_type: selectedMeeting.value,
+      member_ids: selectedMembers.value,
+      attend: 1,
+      date: selectedDate.value
+    })
+    const result = await submitAttendance({
+      district: "永和",
+      meeting_type: selectedMeeting.value,
+      member_ids: selectedMembers.value,
+      attend: 1,
+      date: selectedDate.value
+    })
+
+    console.log("送出結果：", result)
+
+    if (result.status === "success") {
+      submitMessage.value = "✅ 點名成功，中央已同步"
+      submitSuccess.value = true
+    } else if (result.status === "pending") {
+      submitMessage.value = "⚠️ 已記錄本地，中央稍後補送"
+      submitSuccess.value = false
+    } else {
+      submitMessage.value = "❌ 點名失敗：" + (result.message || "未知錯誤")
+      submitSuccess.value = false
+    }
+  } catch (err) {
+    submitMessage.value = "❌ 系統錯誤：" + err.message
+    submitSuccess.value = false
+  }
+}
+
+// 當聚會或日期改變時，自動重新抓名單
+watch([selectedMeeting, selectedDate], () => {
+  loadMembers()
 })
-defineEmits(["submitRollcall", "toggleSelect"])
+
+onMounted(loadMembers)
 </script>
