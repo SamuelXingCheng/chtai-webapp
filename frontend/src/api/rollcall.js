@@ -1,10 +1,11 @@
 const API_URL =
   import.meta.env.VITE_ROLLCALL_API_URL || "https://citcnew.org.tw/attendance-helper"
 
-// 抓名單
+
+// 抓名單（改成打本地 local_members.php）
 export async function fetchMembers(meeting, date) {
   const res = await fetch(
-    `${API_URL}/?path=central-members&meeting=${meeting}&date=${date}`
+    `${API_URL}/src/routes/local_members.php?district=永和&meeting_type=${meeting}&date=${date}`
   )
   const data = await res.json()
   if (!Array.isArray(data.members)) {
