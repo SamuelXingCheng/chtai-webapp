@@ -11,8 +11,8 @@
           <!-- 狀態提示 -->
           <div class="text-center text-sm"
               :class="loginSuccess ? 'text-green-600' : 'text-yellow-600'">
-            {{ loginSuccess ? "🟢 輔助點名系統已連上中央，點名即時同步"
-                            : "⚠️ 輔助點名系統未連上中央，仍可點名，但非即時同步" }}
+            {{ loginSuccess ? "🟢 已連線中央點名系統，點名將即時同步"
+                            : "⚠️ 未連線中央點名系統，仍可點名，但非即時同步" }}
           </div>
 
           <!-- 協助登入按鈕 -->
@@ -21,7 +21,7 @@
               class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
               @click="showLoginModal = true"
             >
-              協助連上中央點名系統
+              連線中央點名系統
             </button>
           </div>
         </div>
@@ -47,6 +47,7 @@
           :captchaUrl="captchaUrl"
           :verifyCode="verifyCode"
           :loading="loading"
+          :captchaLoading="captchaLoading"
           @update:verifyCode="verifyCode = $event"
           @submitLogin="submitLogin"
           @loadCaptcha="loadCaptcha"
@@ -84,6 +85,8 @@ const messageColor = computed(() =>
   message.value.includes("⚠️") ? "text-yellow-600" : "text-green-600"
 )
 
+const captchaLoading = ref(false)
+
 // 初始化
 onMounted(async () => {
   await liff.init({ liffId: LIFF_ID })
@@ -112,6 +115,7 @@ async function checkSession() {
 // 抓驗證碼
 async function loadCaptcha() {
   captchaUrl.value = ""
+  captchaLoading.value = true
   try {
     const res = await fetch(`${API_URL}/?path=central-verify&ts=${Date.now()}`)
     const data = await res.json()
@@ -119,6 +123,8 @@ async function loadCaptcha() {
     picID.value = data.picID
   } catch (err) {
     message.value = "❌ 無法載入驗證碼：" + err.message
+  } finally {
+    captchaLoading.value = false
   }
 }
 
