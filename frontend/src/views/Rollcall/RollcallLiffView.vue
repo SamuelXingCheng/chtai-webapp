@@ -6,7 +6,7 @@
 
         <h2 class="text-xl font-bold mb-4 text-center">台中市召會輔助點名系統</h2>
 
-        <!-- 狀態 + 協助登入： -->
+        <!-- 狀態 + 協助登入 -->
         <div class="flex flex-col items-center space-y-4 mb-6">
           <!-- 狀態提示 -->
           <div class="text-center text-sm"
@@ -26,14 +26,9 @@
           </div>
         </div>
 
-        <!-- 名單點名（主要功能） -->
+        <!-- 名單點名（主要功能交給子元件） -->
         <RollcallMainView
-          :members="members"
-          :selectedMembers="selectedMembers"
-          :loading="loading"
-          :loadingMembers="loadingMembers"
-          @submitRollcall="submitRollcall"
-          @toggleSelect="toggleSelect"
+          :loginSuccess="loginSuccess"
         />
 
         <!-- 訊息 -->
@@ -75,17 +70,13 @@ const verifyCode = ref("")
 const loading = ref(false)
 const loginSuccess = ref(false)
 const message = ref("")
-const members = ref([])
-const selectedMembers = ref([])
-const loadingMembers = ref(false)
 const showLoginModal = ref(false)
+const captchaLoading = ref(false)
 
 const messageColor = computed(() =>
   message.value.includes("❌") ? "text-red-600" :
   message.value.includes("⚠️") ? "text-yellow-600" : "text-green-600"
 )
-
-const captchaLoading = ref(false)
 
 // 初始化
 onMounted(async () => {
@@ -104,11 +95,9 @@ async function checkSession() {
     const data = await res.json()
     loginSuccess.value = data.loggedIn
     message.value = data.loggedIn ? "✅ " + data.message : "⚠️ " + data.message
-    loadMembers()
   } catch (err) {
     loginSuccess.value = false
     message.value = "❌ 檢查登入狀態失敗：" + err.message
-    loadMembers()
   }
 }
 
@@ -143,7 +132,6 @@ async function submitLogin() {
       loginSuccess.value = true
       message.value = "✅ 登入成功，可以同步中央"
       showLoginModal.value = false
-      loadMembers()
     } else {
       loginSuccess.value = false
       message.value = "❌ 登入失敗：" + (result.message || "請檢查驗證碼")
@@ -155,64 +143,6 @@ async function submitLogin() {
     loadCaptcha()
   } finally {
     loading.value = false
-  }
-}
-
-// 載入名單
-async function loadMembers() {
-  loadingMembers.value = true
-  try {
-    const res = await fetch(`${API_URL}/?path=central-members&district=永和`)
-    const data = await res.json()
-    if (Array.isArray(data.members)) {
-      members.value = data.members
-      message.value = "✅ 名單載入完成"
-    } else {
-      message.value = "⚠️ 名單資料格式不正確，僅使用本地"
-    }
-  } catch (err) {
-    message.value = "❌ 載入名單錯誤：" + err.message
-  } finally {
-    loadingMembers.value = false
-  }
-}
-
-// 送出點名
-async function submitRollcall() {
-  try {
-    const payload = {
-      userId: liff.getDecodedIDToken()?.sub || "testUser",
-      groupId: "永和",
-      members: selectedMembers.value.map(m => ({
-        memberId: m.member_id,
-        status: "出席"
-      }))
-    }
-    const res = await fetch(`${API_URL}/?path=rollcall-submit`, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload)
-    })
-    const result = await res.json()
-    if (result.success) {
-      message.value = "✅ 點名成功並同步中央"
-    } else if (result.status === "pending" || result.need_captcha) {
-      message.value = "⚠️ 點名已記錄，等待中央同步"
-    } else {
-      message.value = "❌ 點名失敗：" + (result.message || "")
-    }
-  } catch (err) {
-    message.value = "❌ 點名錯誤：" + err.message
-  }
-}
-
-// 點擊卡片切換
-function toggleSelect(m) {
-  const idx = selectedMembers.value.findIndex(sel => sel.member_id === m.member_id)
-  if (idx >= 0) {
-    selectedMembers.value.splice(idx, 1)
-  } else {
-    selectedMembers.value.push(m)
   }
 }
 </script>

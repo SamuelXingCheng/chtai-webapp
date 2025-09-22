@@ -1,4 +1,5 @@
 <!-- src/views/Rollcall/RollcallMainView.vue -->
+<!-- src/views/Rollcall/RollcallMainView.vue -->
 <template>
   <div>
     <!-- 篩選列 (聚會/日期按鈕) -->
@@ -11,7 +12,7 @@
 
     <!-- 名單卡片 -->
     <div class="grid gap-2"
-     style="grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));">
+         style="grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));">
       <MemberCard
         v-for="m in members"
         :key="m.member_id"
@@ -23,9 +24,6 @@
 
     <!-- 統計 & 送出 -->
     <div class="mt-4 text-center">
-      <p class="mb-2">
-        ✅ 已點 {{ selectedMembers.length }} / 總共 {{ members.length }}
-      </p>
       <button
         class="w-full bg-blue-500 text-white py-2 rounded-lg hover:bg-blue-600"
         @click="handleSubmit"
@@ -37,7 +35,11 @@
 
     <!-- 顯示回饋訊息 -->
     <div v-if="submitMessage" class="mt-4 text-center text-sm"
-         :class="submitSuccess ? 'text-green-600' : 'text-yellow-600'">
+         :class="{
+           'text-green-600': submitSuccess === true,
+           'text-yellow-600': submitSuccess === 'pending',
+           'text-red-600': submitSuccess === false
+         }">
       {{ submitMessage }}
     </div>
   </div>
@@ -50,6 +52,11 @@ import MemberCard from "./components/MemberCard.vue"
 import { fetchMembers, submitAttendance } from "../../api/rollcall.js"
 import { MEETINGS } from "../../config/rollcallmeetings.js"
 
+// 父層傳入中央連線狀態
+const props = defineProps({
+  loginSuccess: Boolean
+})
+
 const selectedMeeting = ref(MEETINGS.LORDSDAY)  // 預設主日
 const selectedDate = ref(new Date().toISOString().slice(0, 10))
 
@@ -58,6 +65,7 @@ const selectedMembers = ref([])
 const loadingMembers = ref(false)
 
 const submitMessage = ref("")
+// true = 本地+中央成功, "pending" = 本地成功但中央未同步, false = 失敗
 const submitSuccess = ref(false)
 
 // 抓名單
@@ -65,7 +73,7 @@ async function loadMembers() {
   loadingMembers.value = true
   try {
     members.value = await fetchMembers(selectedMeeting.value, selectedDate.value)
-    console.log("本地/中央回傳名單：", members.value)
+    console.log("名單來源：", members.value)
   } catch (err) {
     console.error("載入名單失敗：", err.message)
     members.value = []
@@ -87,13 +95,6 @@ function toggleSelect(memberId) {
 // 送出點名
 async function handleSubmit() {
   try {
-    console.log("送出前 payload：", {
-      district: "永和",
-      meeting_type: selectedMeeting.value,
-      member_ids: selectedMembers.value,
-      attend: 1,
-      date: selectedDate.value
-    })
     const result = await submitAttendance({
       district: "永和",
       meeting_type: selectedMeeting.value,
@@ -104,14 +105,19 @@ async function handleSubmit() {
 
     console.log("送出結果：", result)
 
-    if (result.status === "success") {
-      submitMessage.value = "✅ 點名成功，中央已同步"
-      submitSuccess.value = true
-    } else if (result.status === "pending") {
-      submitMessage.value = "⚠️ 已記錄本地，中央稍後補送"
-      submitSuccess.value = false
+    if (result.status === "recorded" || result.status === "success") {
+      if (props.loginSuccess && result.status === "success") {
+        submitMessage.value = "✅ 點名成功，中央已同步"
+        submitSuccess.value = true
+      } else if (!props.loginSuccess) {
+        submitMessage.value = "✅ 點名成功，但尚未同步中央，可協助或等待他人連線"
+        submitSuccess.value = "pending"
+      } else {
+        submitMessage.value = "✅ 點名成功，但中央未成功同步"
+        submitSuccess.value = "pending"
+      }
     } else {
-      submitMessage.value = "❌ 點名失敗：" + (result.message || "未知錯誤")
+      submitMessage.value = "注意：" + (result.message || "未知錯誤")
       submitSuccess.value = false
     }
   } catch (err) {
@@ -121,9 +127,7 @@ async function handleSubmit() {
 }
 
 // 當聚會或日期改變時，自動重新抓名單
-watch([selectedMeeting, selectedDate], () => {
-  loadMembers()
-})
+watch([selectedMeeting, selectedDate], loadMembers)
 
 onMounted(loadMembers)
 </script>
