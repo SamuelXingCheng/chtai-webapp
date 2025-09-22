@@ -10,7 +10,8 @@
     />
 
     <!-- 名單卡片 -->
-    <div class="grid grid-cols-2 gap-3">
+    <div class="grid gap-2"
+     style="grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));">
       <MemberCard
         v-for="m in members"
         :key="m.member_id"

@@ -3,22 +3,31 @@
   <div class="min-h-screen bg-gray-100 pt-20">
     <div class="min-h-screen bg-gray-100 flex items-center justify-center">
       <div class="bg-white shadow-lg rounded-xl p-6 w-full max-w-sm">
-        <h2 class="text-xl font-bold mb-4 text-center">中央點名系統</h2>
 
-        <!-- 驗證碼登入 -->
-        <RollcallLoginView
-          v-if="!loginSuccess"
-          :captchaUrl="captchaUrl"
-          :verifyCode="verifyCode"
-          :loading="loading"
-          @update:verifyCode="verifyCode = $event"
-          @submitLogin="submitLogin"
-          @loadCaptcha="loadCaptcha"
-        />
+        <h2 class="text-xl font-bold mb-4 text-center">台中市召會輔助點名系統</h2>
 
-        <!-- 名單點名 -->
+        <!-- 狀態 + 協助登入： -->
+        <div class="flex flex-col items-center space-y-4 mb-6">
+          <!-- 狀態提示 -->
+          <div class="text-center text-sm"
+              :class="loginSuccess ? 'text-green-600' : 'text-yellow-600'">
+            {{ loginSuccess ? "🟢 輔助點名系統已連上中央，點名即時同步"
+                            : "⚠️ 輔助點名系統未連上中央，仍可點名，但非即時同步" }}
+          </div>
+
+          <!-- 協助登入按鈕 -->
+          <div v-if="!loginSuccess" class="text-center">
+            <button
+              class="bg-yellow-500 text-white px-4 py-2 rounded-lg hover:bg-yellow-600"
+              @click="showLoginModal = true"
+            >
+              協助連上中央點名系統
+            </button>
+          </div>
+        </div>
+
+        <!-- 名單點名（主要功能） -->
         <RollcallMainView
-          v-else
           :members="members"
           :selectedMembers="selectedMembers"
           :loading="loading"
@@ -31,6 +40,19 @@
         <div v-if="message" class="mt-4 text-center text-sm" :class="messageColor">
           {{ message }}
         </div>
+
+        <!-- 驗證碼登入 Modal -->
+        <RollcallLoginView
+          v-if="showLoginModal"
+          :captchaUrl="captchaUrl"
+          :verifyCode="verifyCode"
+          :loading="loading"
+          @update:verifyCode="verifyCode = $event"
+          @submitLogin="submitLogin"
+          @loadCaptcha="loadCaptcha"
+          @close="showLoginModal = false"
+        />
+
       </div>
     </div>
   </div>
@@ -55,9 +77,11 @@ const message = ref("")
 const members = ref([])
 const selectedMembers = ref([])
 const loadingMembers = ref(false)
+const showLoginModal = ref(false)
 
 const messageColor = computed(() =>
-  loginSuccess.value ? "text-green-600" : "text-red-600"
+  message.value.includes("❌") ? "text-red-600" :
+  message.value.includes("⚠️") ? "text-yellow-600" : "text-green-600"
 )
 
 // 初始化
@@ -75,43 +99,33 @@ async function checkSession() {
   try {
     const res = await fetch(`${API_URL}/?path=central-session&ts=${Date.now()}`)
     const data = await res.json()
-    console.log("checkSession 回傳：", data)
-
-    if (data.loggedIn) {
-      loginSuccess.value = true
-      message.value = "✅ " + data.message
-      loadMembers()
-    } else {
-      loginSuccess.value = false   // 🔑 確保切回登入頁
-      message.value = "⚠️ " + data.message
-      loadCaptcha()
-    }
+    loginSuccess.value = data.loggedIn
+    message.value = data.loggedIn ? "✅ " + data.message : "⚠️ " + data.message
+    loadMembers()
   } catch (err) {
-    loginSuccess.value = false     // 🔑 發生錯誤也要回登入頁
+    loginSuccess.value = false
     message.value = "❌ 檢查登入狀態失敗：" + err.message
-    loadCaptcha()
+    loadMembers()
   }
 }
 
 // 抓驗證碼
 async function loadCaptcha() {
-  captchaUrl.value = "" // 🔑 先清空，避免閃舊圖
+  captchaUrl.value = ""
   try {
     const res = await fetch(`${API_URL}/?path=central-verify&ts=${Date.now()}`)
     const data = await res.json()
     captchaUrl.value = data.url
     picID.value = data.picID
-    console.log("驗證碼網址：", captchaUrl.value)
   } catch (err) {
     message.value = "❌ 無法載入驗證碼：" + err.message
   }
 }
 
-// 登入
+// 登入中央
 async function submitLogin() {
   loading.value = true
   message.value = ""
-  loginSuccess.value = false
   try {
     const res = await fetch(`${API_URL}/?path=central-login`, {
       method: "POST",
@@ -119,19 +133,18 @@ async function submitLogin() {
       body: JSON.stringify({ verifyCode: verifyCode.value, picID: picID.value })
     })
     const result = await res.json()
-    console.log("submitLogin 回傳：", result)
-
     if (result.success || result.status === "success") {
       loginSuccess.value = true
-      message.value = "✅ 登入成功，可以開始點名"
+      message.value = "✅ 登入成功，可以同步中央"
+      showLoginModal.value = false
       loadMembers()
     } else {
-      loginSuccess.value = false   // 🔑 登入失敗 → 回登入頁
+      loginSuccess.value = false
       message.value = "❌ 登入失敗：" + (result.message || "請檢查驗證碼")
       loadCaptcha()
     }
   } catch (err) {
-    loginSuccess.value = false     // 🔑 連線錯誤也回登入頁
+    loginSuccess.value = false
     message.value = "❌ 連線錯誤：" + err.message
     loadCaptcha()
   } finally {
@@ -139,26 +152,20 @@ async function submitLogin() {
   }
 }
 
-// 拉名單
+// 載入名單
 async function loadMembers() {
   loadingMembers.value = true
   try {
     const res = await fetch(`${API_URL}/?path=central-members&district=永和`)
     const data = await res.json()
-    console.log("loadMembers 回傳：", data)
-
     if (Array.isArray(data.members)) {
       members.value = data.members
       message.value = "✅ 名單載入完成"
     } else {
-      loginSuccess.value = false   // 🔑 異常 → 回登入頁
-      message.value = "❌ 名單資料格式不正確"
-      loadCaptcha()
+      message.value = "⚠️ 名單資料格式不正確，僅使用本地"
     }
   } catch (err) {
-    loginSuccess.value = false     // 🔑 發生錯誤 → 回登入頁
     message.value = "❌ 載入名單錯誤：" + err.message
-    loadCaptcha()
   } finally {
     loadingMembers.value = false
   }
@@ -168,28 +175,23 @@ async function loadMembers() {
 async function submitRollcall() {
   try {
     const payload = {
-      userId: liff.getDecodedIDToken()?.sub || "testUser", // 🔑 修正拼字
+      userId: liff.getDecodedIDToken()?.sub || "testUser",
       groupId: "永和",
       members: selectedMembers.value.map(m => ({
         memberId: m.member_id,
         status: "出席"
       }))
     }
-
     const res = await fetch(`${API_URL}/?path=rollcall-submit`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(payload)
     })
     const result = await res.json()
-    console.log("submitRollcall 回傳：", result)
-
     if (result.success) {
       message.value = "✅ 點名成功並同步中央"
-    } else if (result.need_captcha) {
-      loginSuccess.value = false   // 🔑 如果需要驗證碼，回登入頁
-      message.value = "⚠️ 點名已記錄，但需要驗證碼才能同步中央"
-      loadCaptcha()
+    } else if (result.status === "pending" || result.need_captcha) {
+      message.value = "⚠️ 點名已記錄，等待中央同步"
     } else {
       message.value = "❌ 點名失敗：" + (result.message || "")
     }
@@ -198,7 +200,7 @@ async function submitRollcall() {
   }
 }
 
-// 點擊卡片切換選取
+// 點擊卡片切換
 function toggleSelect(m) {
   const idx = selectedMembers.value.findIndex(sel => sel.member_id === m.member_id)
   if (idx >= 0) {
