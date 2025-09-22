@@ -17,6 +17,7 @@
         v-for="m in members"
         :key="m.member_id"
         :name="m.member_name"
+        :status="m.status"
         :selected="selectedMembers.includes(m.member_id)"
         @toggle="toggleSelect(m.member_id)"
       />
