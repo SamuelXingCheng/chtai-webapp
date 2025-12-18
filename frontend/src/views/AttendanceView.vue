@@ -4,23 +4,25 @@
     <div class="bg-white rounded-xl shadow-lg p-6 w-80 text-center">
       <h2 class="text-lg font-bold mb-4">台中市召會出勤系統</h2>
 
+      <div v-if="qrTokenFromUrl" class="mb-4 p-2 bg-blue-50 border border-blue-200 rounded-lg text-xs text-blue-600">
+        已偵測到辦公室 QR Code，將優先進行掃碼打卡
+      </div>
+
       <div v-if="loading" class="text-gray-500">正在取得定位...</div>
 
       <div v-else>
         <p class="text-sm text-gray-700">目前位置</p>
 
-        <!-- 地圖區塊 -->
         <div class="w-full h-60 mt-2 rounded-lg overflow-hidden shadow">
           <iframe
             v-if="location.lat && location.lng"
-            :src="`https://www.google.com/maps?q=${encodeURIComponent(location.lat + ',' + location.lng)}&hl=zh-TW&z=16&output=embed`"
+            :src="`https://www.google.com/maps?q=${location.lat},${location.lng}&hl=zh-TW&z=16&output=embed`"
             class="w-full h-full border-0"
             allowfullscreen=""
             loading="lazy"
           ></iframe>
         </div>
 
-        <!-- 打卡按鈕 -->
         <button
           @click="submitAttendance('上班')"
           class="w-full bg-green-500 text-white py-2 px-4 rounded-lg hover:bg-green-600 disabled:bg-gray-300 mt-4 mb-2"
@@ -40,42 +42,21 @@
     </div>
   </div>
 
-  <!-- 打卡結果 Modal -->
-  <div
-    v-if="showResultModal"
-    class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50"
-  >
+  <div v-if="showResultModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
     <div class="bg-white rounded-xl shadow-lg p-6 w-96 text-center">
-      <!-- 標題 -->
       <h3 class="text-lg font-bold mb-4">打卡結果</h3>
-
-      <!-- 框 1：系統提示 -->
-      <div
-        :class="[
-          'rounded-lg p-3 mb-4 text-left',
-          modalTitle === '⚠️ 待主管審核'
-            ? 'bg-yellow-50 border border-yellow-400'
-            : 'bg-green-50 border border-green-400'
-        ]"
-      >
-        <p class="text-sm text-gray-800 whitespace-pre-line">
-          {{ resultMessage }}
-        </p>
+      <div :class="['rounded-lg p-3 mb-4 text-left', modalTitle === '⚠️ 待主管審核' ? 'bg-yellow-50 border border-yellow-400' : 'bg-green-50 border border-green-400']">
+        <p class="text-sm text-gray-800 whitespace-pre-line">{{ resultMessage }}</p>
       </div>
-
-      <!-- 框 2 + 框 3 + 複製按鈕：僅在待審核時顯示 -->
       <template v-if="modalTitle === '⚠️ 待主管審核'">
-        <!-- 框 2：轉傳提示 -->
         <div class="bg-gray-50 border border-blue-300 rounded-lg p-3 mb-4 text-left">
           <p class="text-sm font-semibold text-gray-800">
-            👉 請複製下方文字並轉傳給所屬主管：
+            👉 請複製下方文字並轉傳給主管：
             <span v-for="(sup, i) in supervisors" :key="sup.user_id">
               {{ sup.name }}<span v-if="i < supervisors.length - 1">、</span>
             </span>
           </p>
         </div>
-
-        <!-- 框 3：完整訊息內容 -->
         <div class="bg-gray-50 border border-blue-300 rounded-lg p-3 mb-4 text-left text-sm text-gray-700 break-words">
           <p>弟兄您好，以下是待審核的打卡資料：</p>
           <p>員工：{{ employeeName }}</p>
@@ -86,27 +67,14 @@
           <p>{{ approvalUrl }}</p>
           <p>請您協助審核，謝謝！</p>
         </div>
-
-        <!-- 複製按鈕 -->
-        <button
-          @click="copyMessage"
-          class="w-full bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 mb-3 flex items-center justify-center gap-2"
-        >
+        <button @click="copyMessage" class="w-full bg-yellow-500 text-white py-2 px-4 rounded-lg hover:bg-yellow-600 mb-3 flex items-center justify-center gap-2">
           複製審核文字
         </button>
       </template>
-
-      <!-- 關閉 -->
-      <button
-        @click="showResultModal = false"
-        class="mt-4 text-sm text-gray-500 underline"
-      >
-        關閉
-      </button>
+      <button @click="showResultModal = false" class="mt-4 text-sm text-gray-500 underline">關閉</button>
     </div>
   </div>
 </template>
-
 
 <script setup>
 import { ref, computed, onMounted } from "vue";
@@ -114,7 +82,7 @@ import { ref, computed, onMounted } from "vue";
 const location = ref({ lat: null, lng: null });
 const loading = ref(true);
 const submittingMode = ref(null);
-let liffInstance = null;
+const qrTokenFromUrl = ref(null); // ✨ 新增：QR Token
 
 // Modal 狀態
 const showResultModal = ref(false);
@@ -129,108 +97,87 @@ const attendanceTime = ref("");
 const attendanceReason = ref("");
 const mapUrl = ref("");
 
-// 複製的完整文字
-const copyText = computed(() => {
-  return [
-    "弟兄您好，以下是待審核的打卡資料：",
-    ``,
-    `員工：${employeeName.value}`,
-    `打卡時間：${attendanceTime.value}`,
-    `外地打卡原因：${attendanceReason.value}`,
-    ``,
-    mapUrl.value ? `打卡地圖：${mapUrl.value}` : "",
-    ``,
-    `主管審核連結：`,
-    approvalUrl.value,
-    ``,
-    "請您協助審核，謝謝！"
-  ].join("\n");
-});
+// API 設定
+const API_BASE = import.meta.env.VITE_API_URL || "https://citcnew.org.tw/attendance-helper"; 
+const LIFF_ID = "2008097735-moxnzwdM";
 
-// API base
-const API_BASE = import.meta.env.VITE_API_URL || "http://localhost:8000";
-const LIFF_ID = import.meta.env.VITE_LIFF_ID || "2008097735-moxnzwdM";
+// ✨ 多據點設定
+const LOCATIONS = [
+  { lat: Number(import.meta.env.VITE_COMPANY_LAT) || 24.13384, lng: Number(import.meta.env.VITE_COMPANY_LNG) || 120.68162 },
+  { lat: Number(import.meta.env.VITE_COMPANY_LAT_2) || 24.188632, lng: Number(import.meta.env.VITE_COMPANY_LNG_2) || 120.607218 }
+];
+const ALLOWED_RADIUS = Number(import.meta.env.VITE_ALLOWED_RADIUS) || 100;
 
-// 公司座標 & 半徑
-const COMPANY_LAT = Number(import.meta.env.VITE_COMPANY_LAT) || 24.13384;
-const COMPANY_LNG = Number(import.meta.env.VITE_COMPANY_LNG) || 120.68162;
-const ALLOWED_RADIUS = Number(import.meta.env.VITE_ALLOWED_RADIUS) || 200; // 預設 200
+// 計算最短距離
+function getMinDistance(lat, lng) {
+  let min = Infinity;
+  LOCATIONS.forEach(loc => {
+    const d = calculateDistance(lat, lng, loc.lat, loc.lng);
+    if (d < min) min = d;
+  });
+  return min;
+}
 
-// 初始化 LIFF
+function calculateDistance(lat1, lng1, lat2, lng2) {
+  const R = 6371000;
+  const phi1 = (lat1 * Math.PI) / 180;
+  const phi2 = (lat2 * Math.PI) / 180;
+  const dPhi = ((lat2 - lat1) * Math.PI) / 180;
+  const dLambda = ((lng2 - lng1) * Math.PI) / 180;
+  const a = Math.sin(dPhi / 2) ** 2 + Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+// 複製與初始化 (略) ...
 async function initLiff() {
   const liff = (await import("@line/liff")).default;
   await liff.init({ liffId: LIFF_ID });
-  if (!liff.isLoggedIn()) {
-    liff.login();
-  }
+  if (!liff.isLoggedIn()) liff.login();
   return liff;
 }
 
-// 取得座標
 function getLocation() {
   return new Promise((resolve, reject) => {
-    if (!navigator.geolocation) {
-      reject(new Error("瀏覽器不支援定位"));
-      return;
-    }
     navigator.geolocation.getCurrentPosition(
       (pos) => resolve({ lat: pos.coords.latitude, lng: pos.coords.longitude }),
-      (err) => {
-        if (err.code === 1) reject(new Error("請允許定位權限才能打卡"));
-        else reject(new Error("定位失敗，請稍後再試"));
-      },
+      (err) => reject(new Error("定位失敗，請確認已開啟 GPS 與權限")),
       { enableHighAccuracy: true }
     );
   });
 }
 
-// 前端計算距離
-function calculateDistance(lat, lng) {
-  const R = 6371000;
-  const phi1 = (COMPANY_LAT * Math.PI) / 180;
-  const phi2 = (lat * Math.PI) / 180;
-  const dPhi = ((lat - COMPANY_LAT) * Math.PI) / 180;
-  const dLambda = ((lng - COMPANY_LNG) * Math.PI) / 180;
-
-  const a =
-    Math.sin(dPhi / 2) ** 2 +
-    Math.cos(phi1) * Math.cos(phi2) * Math.sin(dLambda / 2) ** 2;
-  const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
-  return R * c;
-}
-
-// 複製訊息
 function copyMessage() {
-  navigator.clipboard.writeText(copyText.value).then(() => {
-    alert("✅ 已複製到剪貼簿，請至主管LINE聊天室貼上並送出");
-  });
+  const text = `弟兄您好，以下是待審核的打卡資料：\n\n員工：${employeeName.value}\n時間：${attendanceTime.value}\n原因：${attendanceReason.value}\n地圖：${mapUrl.value}\n\n審核連結：${approvalUrl.value}`;
+  navigator.clipboard.writeText(text).then(() => alert("✅ 已複製文字"));
 }
 
-// 送出打卡
+// ✨ 送出打卡邏輯修改
 async function submitAttendance(mode) {
   if (submittingMode.value) return;
   submittingMode.value = mode;
+
   try {
-    const idToken = liff.getDecodedIDToken();
-    const distance = calculateDistance(location.value.lat, location.value.lng);
-    console.log("distance:", distance, "ALLOWED_RADIUS:", ALLOWED_RADIUS);
+    const liff = (await import("@line/liff")).default;
+    const profile = await liff.getProfile();
+    const minDistance = getMinDistance(location.value.lat, location.value.lng);
 
     let reason = null;
-    if (distance > ALLOWED_RADIUS) {
-      reason = prompt("⚠️ 你不在公司範圍內，請輸入原因：", "外出洽公");
+    // 如果沒有 QR Token 且超過距離，才需要詢問原因
+    if (!qrTokenFromUrl.value && minDistance > ALLOWED_RADIUS) {
+      reason = prompt("⚠️ 您不在辦公區域範圍內，請輸入原因：", "外出洽公");
       if (!reason) {
-        alert("❌ 未輸入原因，打卡未送出");
         submittingMode.value = null;
         return;
       }
     }
 
     const payload = {
-      userId: idToken.sub,
+      userId: profile.userId,
       mode,
       latitude: location.value.lat,
       longitude: location.value.lng,
       reason: reason,
+      qr_token: qrTokenFromUrl.value // ✨ 傳送 Token 給後端
     };
 
     const res = await fetch(`${API_BASE}/attendance_api.php`, {
@@ -239,46 +186,34 @@ async function submitAttendance(mode) {
       body: JSON.stringify(payload),
     });
 
-    const text = await res.text();
-    let data;
-    try {
-      data = JSON.parse(text);
-    } catch (e) {
-      alert("❌ 後端回傳的不是 JSON: " + text);
-      return;
-    }
+    const data = await res.json();
+    resultMessage.value = data.message;
+    approvalUrl.value = data.approval_url || "";
+    supervisors.value = data.supervisors || [];
+    employeeName.value = data.employee_name || "";
+    attendanceTime.value = data.attendance_time || "";
+    attendanceReason.value = data.reason || (qrTokenFromUrl.value ? "辦公室 QR 掃描" : "");
+    mapUrl.value = data.map_url || "";
 
-    resultMessage.value = data.message || "⚠️ 未知回應";
-    approvalUrl.value   = data.approval_url || "";
-    supervisors.value   = data.supervisors || [];
-
-    employeeName.value     = data.employee_name || "";
-    attendanceTime.value   = data.attendance_time || "";
-    attendanceReason.value = data.reason || "";
-    mapUrl.value           = data.map_url || "";
-
-    // ✅ 根據有沒有審核需求設定 modalTitle
-    if (approvalUrl.value && supervisors.value.length > 0) {
-      modalTitle.value = "⚠️ 待主管審核";
-    } else {
-      modalTitle.value = "✅ 打卡成功";
-    }
-
+    modalTitle.value = (data.approval_status === 'pending') ? "⚠️ 待主管審核" : "✅ 打卡成功";
     showResultModal.value = true;
   } catch (err) {
-    alert("❌ 打卡失敗: " + err.message);
+    alert("❌ 錯誤: " + err.message);
   } finally {
     submittingMode.value = null;
   }
 }
 
-// 頁面載入時
 onMounted(async () => {
   try {
-    liffInstance = await initLiff();
+    // ✨ 抓取網址中的 qr_token
+    const urlParams = new URLSearchParams(window.location.search);
+    qrTokenFromUrl.value = urlParams.get('qr_token');
+
+    await initLiff();
     location.value = await getLocation();
   } catch (err) {
-    alert("⚠️ 初始化失敗: " + err.message);
+    alert("初始化失敗: " + err.message);
   } finally {
     loading.value = false;
   }
